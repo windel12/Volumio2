@@ -2,7 +2,7 @@
 
 var libQ = require('kew');
 var fs = require('fs-extra');
-var api = require('/volumio/http/restapi.js');
+var api = require(process.env.BASEDIR + '/http/restapi.js');
 var bodyParser = require('body-parser');
 
 

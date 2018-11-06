@@ -3,7 +3,7 @@ var app = require('./index.js')
 var bodyParser = require('body-parser');
 var ip = require('ip');
 var api = express.Router();
-var ifconfig = require('/volumio/app/plugins/system_controller/network/lib/ifconfig.js');
+var ifconfig = require(process.env.BASEDIR + '/app/plugins/system_controller/network/lib/ifconfig.js');
 var primaryhost = undefined;
 
 function apiInterface(server, commandRouter) {

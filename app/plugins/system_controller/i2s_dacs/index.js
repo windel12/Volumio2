@@ -173,7 +173,7 @@ ControllerI2s.prototype.eepromDetect = function () {
 	var self = this;
 
 	var defer = libQ.defer();
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var hatnamefile = '/proc/device-tree/hat/product';
 
 
@@ -245,7 +245,7 @@ ControllerI2s.prototype.i2sMatch = function (data) {
 
 
 
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var devicename = self.getAdditionalConf('system_controller', 'system', 'device');
 
 	for(var i = 0; i < dacdata.devices.length; i++)
@@ -286,7 +286,7 @@ ControllerI2s.prototype.getI2sOptions = function () {
 	var self = this;
 
 	var options = [];
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var devicename = self.getAdditionalConf('system_controller', 'system', 'device');
 
 	for(var i = 0; i < dacdata.devices.length; i++)
@@ -325,7 +325,7 @@ ControllerI2s.prototype.getI2sStatus = function () {
 ControllerI2s.prototype.getI2SNumber = function (data) {
 	var self = this;
 
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var devicename = self.getAdditionalConf('system_controller', 'system', 'device');
 	var number = '';
 
@@ -348,7 +348,7 @@ ControllerI2s.prototype.getI2SNumber = function (data) {
 ControllerI2s.prototype.getI2SMixer = function (data) {
 	var self = this;
 
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var devicename = self.getAdditionalConf('system_controller', 'system', 'device');
 	var mixer = '';
 
@@ -374,7 +374,7 @@ ControllerI2s.prototype.enableI2SDAC = function (data) {
 	var self = this;
 
 	var defer=libQ.defer();
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var devicename = self.getAdditionalConf('system_controller', 'system', 'device');
 	var response =  '';
 
@@ -515,7 +515,7 @@ ControllerI2s.prototype.forceConfigTxtBannerCompat = function () {
   			if (index == -1) {
   				//there is no Banner in config.txt; check if DAC dtoverlay is present (for backward compatibility)  
 				
-				fs.readFile('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json', 'utf8', function (err,dacdata) {
+				fs.readFile(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json', 'utf8', function (err,dacdata) {
   					if (err) {
 						self.logger.error('Cannot read dacs.json file: '+err);
   					}
@@ -624,7 +624,7 @@ ControllerI2s.prototype.execDacScript = function () {
 	var self = this;
 	var dacname = self.getConfigParam('i2s_dac');
 
-	var dacdata = fs.readJsonSync(('/volumio/app/plugins/system_controller/i2s_dacs/dacs.json'),  'utf8', {throws: false});
+	var dacdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/i2s_dacs/dacs.json',  'utf8', {throws: false});
 	var devicename = self.getAdditionalConf('system_controller', 'system', 'device');
 
 	for(var i = 0; i < dacdata.devices.length; i++)

@@ -9,7 +9,7 @@ var io=require('socket.io-client');
 var exec = require('child_process').exec;
 var libQ = require('kew');
 var ip = require('ip');
-var ifconfig = require('/volumio/app/plugins/system_controller/network/lib/ifconfig.js');
+var ifconfig = require(process.env.BASEDIR + '/app/plugins/system_controller/network/lib/ifconfig.js');
 
 // Define the ControllerVolumioDiscovery class
 

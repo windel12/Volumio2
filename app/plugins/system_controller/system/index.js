@@ -522,7 +522,7 @@ ControllerSystem.prototype.deviceDetect = function (data) {
                 } else {
                     var hardwareLine = stdout.split(":");
                     var cpuidparam = hardwareLine[1].replace(/\s/g, '');
-                    var deviceslist = fs.readJsonSync(('/volumio/app/plugins/system_controller/system/devices.json'),  'utf8', {throws: false});
+                    var deviceslist = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/system_controller/system/devices.json',  'utf8', {throws: false});
                     //self.logger.info('CPU ID ::'+cpuidparam+'::');
                     for(var i = 0; i < deviceslist.devices.length; i++)
                     {

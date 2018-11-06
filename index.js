@@ -1,6 +1,10 @@
 var execSync = require('child_process').execSync;
 var fs = require('fs-extra');
 var globals = fs.readJsonSync(__dirname + '/.globals.json');
+if(!process.env.BASEDIR) {
+    process.env.BASEDIR = '/volumio';
+}
+console.log('Basedir ' + process.env.BASEDIR);
 
 var expressInstance = require('./http/index.js');
 var expressApp = expressInstance.app;
@@ -44,7 +48,7 @@ process.on('uncaughtException', (error) => {
   } else {
     var errorMessage = 'Unknown';
   }
-  execSync('/usr/local/bin/node /volumio/crashreport.js "' + errorMessage + '"');
+  execSync('/usr/local/bin/node ' + process.env.BASEDIR + '/crashreport.js "' + errorMessage + '"');
   if (globals.exitOnException) {
     process.exit(1);
   }

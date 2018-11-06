@@ -42,7 +42,7 @@ ControllerAlsa.prototype.onVolumioStart = function () {
 
 	if (volumeval != 'disabled') {
 		setTimeout(function () {
-			exec('/volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh volume ' + volumeval, {uid: 1000, gid: 1000, encoding: 'utf8'}, function (error, stdout, stderr) {
+			exec(process.env.BASEDIR + '/app/plugins/system_controller/volumio_command_line_client/volumio.sh volume ' + volumeval, {uid: 1000, gid: 1000, encoding: 'utf8'}, function (error, stdout, stderr) {
 				if (error) {
 					self.logger.error('Cannot set startup volume: ' + error);
 				} else {
@@ -472,7 +472,7 @@ ControllerAlsa.prototype.saveDSPOptions = function (data) {
 ControllerAlsa.prototype.getDSPDACOptions = function (data) {
 	var self = this;
 
-	var dspdata = fs.readJsonSync(('/volumio/app/plugins/audio_interface/alsa_controller/dac_dsp.json'),  'utf8', {throws: false});
+	var dspdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/audio_interface/alsa_controller/dac_dsp.json',  'utf8', {throws: false});
 	var dspobject = {};
 	var dspcontrols = [];
 
@@ -801,10 +801,10 @@ ControllerAlsa.prototype.getAlsaCards = function () {
 	var self=this;
 	var multi = false;
 	var cards = [];
-	var carddata = fs.readJsonSync(('/volumio/app/plugins/audio_interface/alsa_controller/cards.json'),  'utf8', {throws: false});
+	var carddata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/audio_interface/alsa_controller/cards.json',  'utf8', {throws: false});
 
 	try {
-        var ignoredCards = fs.readJsonSync(('/volumio/app/plugins/audio_interface/alsa_controller/ignoreCards.json'),  'utf8', {throws: false});
+        var ignoredCards = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/audio_interface/alsa_controller/ignoreCards.json',  'utf8', {throws: false});
 	} catch(e) {
         var ignoredCards = [];
 	}
@@ -930,7 +930,7 @@ ControllerAlsa.prototype.setDefaultMixer  = function (device) {
 	var defaultmixer = '';
 	var match = '';
 	var mixertpye = '';
-	var carddata = fs.readJsonSync(('/volumio/app/plugins/audio_interface/alsa_controller/cards.json'),  'utf8', {throws: false});
+	var carddata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/audio_interface/alsa_controller/cards.json',  'utf8', {throws: false});
 	var cards = self.getAlsaCards();
 
     var i2sstatus = self.commandRouter.executeOnPlugin('system_controller', 'i2s_dacs', 'getI2sStatus');
@@ -1179,7 +1179,7 @@ ControllerAlsa.prototype.apply1  = function () {
 	var defer = libQ.defer();
 
 	try {
-		var apply2 = execSync('/usr/bin/aplay -D softvolume /volumio/app/silence.wav', { encoding: 'utf8' });
+		var apply2 = execSync('/usr/bin/aplay -D softvolume ' + process.env.BASEDIR + '/app/silence.wav', { encoding: 'utf8' });
 	} catch (e) {
 
 	}

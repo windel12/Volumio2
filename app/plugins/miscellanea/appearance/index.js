@@ -122,7 +122,7 @@ volumioAppearance.prototype.getUIConfig = function () {
         __dirname + '/UIConfig.json')
         .then(function(uiconf)
         {
-            var languagesdata = fs.readJsonSync(('/volumio/app/plugins/miscellanea/appearance/languages.json'),  'utf8', {throws: false});
+            var languagesdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/miscellanea/appearance/languages.json',  'utf8', {throws: false});
             var language = config.get('language');
             var language_code = config.get('language_code');
 
@@ -405,7 +405,7 @@ volumioAppearance.prototype.selectRandomBacground = function(){
 
 volumioAppearance.prototype.getAvailableLanguages = function() {
 
-    var languagesdata = fs.readJsonSync(('/volumio/app/plugins/miscellanea/appearance/languages.json'), 'utf8', {throws: false});
+    var languagesdata = fs.readJsonSync(process.env.BASEDIR + '/app/plugins/miscellanea/appearance/languages.json', 'utf8', {throws: false});
     var defer = libQ.defer();
 
 
