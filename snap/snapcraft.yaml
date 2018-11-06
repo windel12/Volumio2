@@ -11,6 +11,10 @@ confinement: devmode
 apps:
   backend:
     command: bin/node $SNAP/lib/node_modules/Volumio2/index.js
+    environment:
+      DATADIR: $SNAP_COMMON
+      BASEDIR: $SNAP/lib/node_modules/Volumio2
+      ARCH: $SNAP_ARCH
 
 parts:
   volumio-backend:
@@ -21,6 +25,7 @@ parts:
       - g++
       - make
       - python-minimal
+      - git
 
       # Libs
       - libavahi-compat-libdnssd-dev
