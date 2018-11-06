@@ -1,0 +1,26 @@
+name: volumio
+version: '0.1'
+summary: The audiophile music player
+description: |
+  Volumio is an headless audiophile music player, designed to play music with
+  the highest possible fidelity. Enjoy your music as you never did before!
+
+grade: devel
+confinement: devmode
+
+apps:
+  backend:
+    command: bin/node $SNAP/lib/node_modules/Volumio2/index.js
+
+parts:
+  volumio-backend:
+    plugin: nodejs
+    source: .
+    build-packages:
+      # Build tools
+      - g++
+      - make
+      - python-minimal
+
+      # Libs
+      - libavahi-compat-libdnssd-dev
