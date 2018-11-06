@@ -10,7 +10,7 @@ var I2Sreboot = false;
 var I2SName = '';
 
 
-var backgroundPath = '/data/backgrounds';
+var backgroundPath = process.env.DATADIR + '/backgrounds';
 
 // Define the volumioWizard class
 module.exports = volumioWizard;

@@ -100,7 +100,7 @@ function CoreMusicLibrary (commandRouter) {
 	];
 
 	// The Browse Sources Array is the list showed on Browse Page
-	var sourcesJson = '/volumio/app/browsesources.json'
+	var sourcesJson = process.env.BASEDIR + '/app/browsesources.json'
     if (fs.existsSync(sourcesJson)) {
         self.browseSources = fs.readJsonSync((sourcesJson),  'utf8', {throws: false});
     } else {

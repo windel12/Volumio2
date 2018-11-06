@@ -25,17 +25,17 @@ function PluginManager(ccommand, server) {
     self.myVolumioPlugins = new HashMap();
     self.myMusicPlugins = [];
 
-	fs.ensureDir('/data/plugins/', function (err) {
+	fs.ensureDir(process.env.DATADIR + '/plugins/', function (err) {
 		if (err) {
-			self.logger.info('ERROR: Cannot create /data/plugins directory');
+			self.logger.info('ERROR: Cannot create plugins directory');
 		}
 	})
 
-	self.pluginPath = [__dirname + '/plugins/', '/data/plugins/'];
+	self.pluginPath = [__dirname + '/plugins/', process.env.DATADIR + '/plugins/'];
 
 	self.config = new (require('v-conf'))();
 
-	var pluginsDataFile = '/data/configuration/plugins.json';
+	var pluginsDataFile = process.env.DATADIR + '/configuration/plugins.json';
 	if (!fs.existsSync(pluginsDataFile)) {
 		ccommand.logger.info("File /data/configuration/plugins.json does not exist. Copying from Volumio");
 		fs.copySync(__dirname + '/plugins/plugins.json', pluginsDataFile);
@@ -49,7 +49,7 @@ function PluginManager(ccommand, server) {
 
 	self.configManager=new(require(__dirname+'/configManager.js'))(self.logger);
 
-	self.configurationFolder = '/data/configuration/';
+	self.configurationFolder = process.env.DATADIR + '/configuration/';
 
 	var archraw = execSync('/usr/bin/dpkg --print-architecture', { encoding: 'utf8' });
 	arch = archraw.replace(/(\r\n|\n|\r)/gm,"")
@@ -266,7 +266,7 @@ PluginManager.prototype.loadMyVolumioPlugins = function () {
     var defer_loadList=[];
     var priority_array = new HashMap();
 
-    var myVolumioPaths = ['/myvolumio/plugins','/data/myvolumio/plugins']
+    var myVolumioPaths = ['/myvolumio/plugins', process.env.DATADIR + '/myvolumio/plugins']
 
     for (var ppaths in myVolumioPaths) {
         var folder = myVolumioPaths[ppaths];
@@ -690,7 +690,7 @@ PluginManager.prototype.getPluginNames = function (category) {
 PluginManager.prototype.getAllPlugNames = function (category) {
 	var self = this;
 
-	var plugFile = fs.readJsonSync(('/data/configuration/plugins.json'), 'utf-8', {throws: false});
+	var plugFile = fs.readJsonSync(process.env.DATADIR + '/configuration/plugins.json', 'utf-8', {throws: false});
 	var plugins = [];
 	for (var i in plugFile){
 		if (i == category){
@@ -906,7 +906,7 @@ PluginManager.prototype.installPlugin = function (url) {
 			currentMessage = 'Creating folder on disk';
 			advancedlog = advancedlog + "<br>" + currentMessage;
 
-			var pluginFolder = '/data/temp/downloaded_plugin';
+			var pluginFolder = process.env.DATADIR + '/temp/downloaded_plugin';
 
 
 			self.createFolder(pluginFolder)
@@ -1043,7 +1043,7 @@ PluginManager.prototype.updatePlugin = function (data) {
 			currentMessage = 'Creating folder on disk';
 			advancedlog = advancedlog + "<br>" + currentMessage;
 
-			var pluginFolder = '/data/temp/downloaded_plugin';
+			var pluginFolder = process.env.DATADIR + '/temp/downloaded_plugin';
             self.createFolder(pluginFolder);
 
 			self.stopPlugin(category,name)
@@ -1170,7 +1170,7 @@ PluginManager.prototype.rmDir = function (folder) {
 PluginManager.prototype.tempCleanup = function () {
 	var self=this;
 
-	self.rmDir('/data/temp');
+	self.rmDir(process.env.DATADIR + '/temp');
 	self.rmDir('/tmp/plugins');
 	self.rmDir('/tmp/downloaded_plugin.zip');
 }
@@ -1193,7 +1193,7 @@ PluginManager.prototype.createFolder = function (folder) {
 PluginManager.prototype.unzipPackage = function () {
 	var self=this;
 	var defer=libQ.defer();
-	var extractFolder='/data/temp/downloaded_plugin';
+	var extractFolder=process.env.DATADIR + '/temp/downloaded_plugin';
 
 	try {
         fs.ensureDirSync(extractFolder)
@@ -1327,7 +1327,7 @@ PluginManager.prototype.executeUninstallationScript = function (category,name) {
     var defer=libQ.defer();
 
     self.logger.info("Checking if uninstall.sh is present");
-    var installScript='/data/plugins/'+category+'/'+name+'/uninstall.sh';
+    var installScript=process.env.DATADIR + '/plugins/'+category+'/'+name+'/uninstall.sh';
     fs.stat(installScript,function(err,stat){
         if(err)
         {
@@ -1531,7 +1531,7 @@ PluginManager.prototype.removePluginFromConfiguration = function (category,name)
 	self.corePlugins.remove(key);
 
     try {
-        execSync('/bin/rm -rf /data/configuration/' + category +'/' + name, { uid: 1000, gid:1000, encoding: 'utf8' });
+        execSync('/bin/rm -rf ' + process.env.DATADIR + '/configuration/' + category +'/' + name, { uid: 1000, gid:1000, encoding: 'utf8' });
         execSync('/bin/sync', { uid: 1000, gid:1000, encoding: 'utf8' });
         self.logger.info("Successfully removed " + name + " configuration files");
 	} catch(e) {

@@ -24,7 +24,7 @@ function CorePlayQueue(commandRouter, stateMachine) {
 	}
 
 	if (persistentqueue) {
-		fs.readJson('/data/queue', function (err, queue) {
+		fs.readJson(process.env.DATADIR + '/queue', function (err, queue) {
 			if(err)
 				self.commandRouter.logger.info("Cannot read play queue from file");
 			else
@@ -35,7 +35,7 @@ function CorePlayQueue(commandRouter, stateMachine) {
 			}
 		})
 	} else {
-		exec('echo "" > /data/queue', function (error, stdout, stderr) {
+		exec('echo "" > ' + process.env.DATADIR + '/queue', function (error, stdout, stderr) {
 			if (error !== null) {
 				console.log('Cannot empty queue');
 			}
@@ -249,7 +249,7 @@ CorePlayQueue.prototype.saveQueue = function () {
     var self=this;
     this.commandRouter.pushConsoleMessage('CorePlayQueue::saveQueue');
 
-    fs.writeJson('/data/queue', self.arrayQueue, function (err) {
+    fs.writeJson(process.env.DATADIR + '/queue', self.arrayQueue, function (err) {
         if(err)
             self.commandRouter.logger.info("An error occurred saving queue to disk: "+err);
     });

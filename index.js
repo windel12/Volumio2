@@ -6,6 +6,17 @@ if(!process.env.BASEDIR) {
 }
 console.log('Basedir ' + process.env.BASEDIR);
 
+
+if(process.env.SNAP_COMMON) {
+    process.env.DATADIR = process.env.SNAP_COMMON;
+}
+
+if(!process.env.DATADIR) {
+    process.env.DATADIR = '/data';
+}
+console.log('Basedir ' + process.env.BASEDIR);
+console.log('Datadir ' + process.env.DATADIR);
+
 var expressInstance = require('./http/index.js');
 var expressApp = expressInstance.app;
 // Using port 3000 for the debug interface
@@ -17,7 +28,7 @@ var httpServer = expressApp.listen(expressApp.get('port'), function () {
 
 var albumart = require(__dirname + '/app/plugins/miscellanea/albumart/albumart.js');
 
-albumart.setFolder('/data/albumart');
+albumart.setFolder(process.env.DATADIR + '/albumart');
 
 expressApp.get('/albumart', albumart.processExpressRequest);
 

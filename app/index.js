@@ -499,8 +499,8 @@ CoreCommandRouter.prototype.getPlugConf = function (category, plugin) {
 	var cName = category;
 	var name = plugin;
 	try{
-		var config = fs.readJsonSync(("/data/configuration/" + cName + "/" +
-			name + "/" + "config.json"), 'utf-8',
+		var config = fs.readJsonSync(process.env.DATADIR + "/configuration/" + cName + "/" +
+			name + "/" + "config.json", 'utf-8',
 			{throws: false});
 	}
 	catch(e) {
@@ -554,7 +554,7 @@ CoreCommandRouter.prototype.writePluginsConf = function () {
 	var self = this;
 	var confs = self.getPluginsConf();
 
-	var file = "/data/configuration/generalConfig";
+	var file = process.env.DATADIR + "/configuration/generalConfig";
 	fs.outputJson(file, confs, function (err) {
 		console.log(err)})
 }
@@ -634,7 +634,7 @@ CoreCommandRouter.prototype.writeConfs = function (data) {
 	for(var i = 0; i < usefulConfs.length; i++){
 		for(var j = 0; j < usefulConfs[i].plugConf.length; j++){
 			if (usefulConfs[i].plugConf[j].config != "") {
-				var path = "/data/configuration/" + usefulConfs[i].cName + "/" +
+				var path = process.env.DATADIR + "/configuration/" + usefulConfs[i].cName + "/" +
 					usefulConfs[i].plugConf[j].name + "/config.json";
 				fs.outputJsonSync(path, usefulConfs[i].plugConf[j].config);
 			}
@@ -773,7 +773,7 @@ CoreCommandRouter.prototype.writePlaylistsBackup = function () {
 
 	var data = self.loadPlaylistsBackup();
 
-	var file = "/data/configuration/playlists";
+	var file = process.env.DATADIR + "/configuration/playlists";
 	fs.outputJsonSync(file, data);
 }
 
@@ -789,7 +789,7 @@ CoreCommandRouter.prototype.writeFavouritesBackup = function () {
 
 	var favourites = {"songs": data, "radios": radio, "myRadios": myRadio};
 
-	var file = "/data/configuration/favourites";
+	var file = process.env.DATADIR + "/configuration/favourites";
 	fs.outputJsonSync(file, favourites);
 }
 
@@ -879,7 +879,7 @@ CoreCommandRouter.prototype.checkBackup = function (backup) {
 	var self = this;
 	var isbackup = false;
 	var file = [];
-	var path = "/data/configuration/" + backup;
+	var path = process.env.DATADIR + "/configuration/" + backup;
 
 	try{
 		file = fs.readJsonSync(path);
@@ -1055,7 +1055,7 @@ CoreCommandRouter.prototype.getUIConfigOnPlugin = function (type, name, data) {
 
 CoreCommandRouter.prototype.writePlayerControls = function (config) {
 	var self = this;
-	var pCtrlFile = '/data/playerstate/playback-controls.json';
+	var pCtrlFile = process.env.DATADIR + '/playerstate/playback-controls.json';
 
 	this.pushConsoleMessage('CoreCommandRouter::writePlayerControls');
 
@@ -1072,7 +1072,7 @@ CoreCommandRouter.prototype.writePlayerControls = function (config) {
 };
 
 CoreCommandRouter.prototype.initPlayerControls = function () {
-	var pCtrlFile = '/data/playerstate/playback-controls.json';
+	var pCtrlFile = process.env.DATADIR + '/playerstate/playback-controls.json';
 	var self = this;
 
 	this.pushConsoleMessage('CoreCommandRouter::initPlayerControls');

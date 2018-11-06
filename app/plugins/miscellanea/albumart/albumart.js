@@ -20,9 +20,9 @@ var logger = new (winston.Logger)({
 	]
 });
 
-var albumArtRootFolder = '/data/albumart/web';
-var mountAlbumartFolder= '/data/albumart/folder';
-var mountMetadataFolder= '/data/albumart/metadata';
+var albumArtRootFolder = process.env.DATADIR + '/albumart/web';
+var mountAlbumartFolder= process.env.DATADIR + '/albumart/folder';
+var mountMetadataFolder= process.env.DATADIR + '/albumart/metadata';
 
 var setFolder = function (newFolder) {
 	//logger.info("Setting folder " + newFolder);
@@ -456,7 +456,7 @@ var processExpressRequest = function (req, res) {
 		    if(icon!==undefined){
                 res.sendFile(__dirname + '/icons/'+icon+'.svg');
 			} else if (sectionimage!==undefined) {
-                var pluginPaths = ['/volumio/app/plugins/', '/data/plugins/', '/myvolumio/plugins/', '/data/myvolumio/plugins/'];
+                var pluginPaths = ['/volumio/app/plugins/', process.env.DATADIR + '/plugins/', '/myvolumio/plugins/', process.env.DATADIR + '/myvolumio/plugins/'];
                 try {
                     for (i = 0; i < pluginPaths.length; i++) {
                         var sectionimageFile = pluginPaths[i] + sectionimage;
@@ -472,7 +472,7 @@ var processExpressRequest = function (req, res) {
                     }
                 }
             } else if (sourceicon!==undefined) {
-                var pluginPaths = ['/volumio/app/plugins/', '/data/plugins/', '/myvolumio/plugins/', '/data/myvolumio/plugins/'];
+                var pluginPaths = ['/volumio/app/plugins/', process.env.DATADIR + '/plugins/', '/myvolumio/plugins/', process.env.DATADIR + '/myvolumio/plugins/'];
                 try {
                     for (i = 0; i < pluginPaths.length; i++) {
                         var pluginIcon = pluginPaths[i] + sourceicon;

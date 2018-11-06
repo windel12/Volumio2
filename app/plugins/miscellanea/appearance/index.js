@@ -6,7 +6,7 @@ var libQ = require('kew');
 var path = require('path');
 var Jimp = require("jimp");
 
-var backgroundPath = '/data/backgrounds';
+var backgroundPath = process.env.DATADIR + '/backgrounds';
 
 // Define the volumioAppearance class
 module.exports = volumioAppearance;

@@ -48,7 +48,12 @@ AlbumArt.prototype.startAlbumartServer = function() {
     metadataimage = self.config.get('metadataimage', false);
 
     //Starting server
-    var albumartServerCmdArray = [self.config.get('port'),self.config.get('folder')];
+    if (process.env.DATADIR !== '/data') {
+            var albumartServerCmdArray = [self.config.get('port'), process.env.DATADIR + '/albumart'];
+    } else {
+        var albumartServerCmdArray = [self.config.get('port'),self.config.get('folder')];
+    }
+
     var albumartServer = fork(__dirname+'/serverStartup.js', albumartServerCmdArray);
 
     albumartServer.on('error', function(error) {
@@ -193,7 +198,7 @@ AlbumArt.prototype.saveAlbumartOptions = function (data) {
 AlbumArt.prototype.clearAlbumartCache = function () {
 	var self = this;
 
-    exec('/bin/rm -rf /data/albumart/*', {uid: 1000, gid: 1000}, function (error, stdout, stderr) {
+    exec('/bin/rm -rf ' + process.env.DATADIR + '/albumart/*', {uid: 1000, gid: 1000}, function (error, stdout, stderr) {
             if (error) {
                 console.log('Cannot Delete Albumart Cache DirectoryB: ' + error);
                 self.commandRouter.pushToastMessage('error', self.commandRouter.getI18nString('APPEARANCE.ALBUMART_SETTINGS'), self.commandRouter.getI18nString('APPEARANCE.ALBUMART_CACHE_CLEAR_ERROR'));

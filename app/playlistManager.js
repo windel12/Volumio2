@@ -12,8 +12,8 @@ function PlaylistManager(commandRouter) {
 
 	self.commandRouter = commandRouter;
 
-	self.playlistFolder = '/data/playlist/';
-	self.favouritesPlaylistFolder = '/data/favourites/';
+	self.playlistFolder = process.env.DATADIR + '/playlist/';
+	self.favouritesPlaylistFolder = process.env.DATADIR + '/favourites/';
 
 	fs.ensureDirSync(self.playlistFolder);
 	fs.ensureDirSync(self.favouritesPlaylistFolder);
