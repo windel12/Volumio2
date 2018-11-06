@@ -22,6 +22,18 @@ parts:
     plugin: nil
     stage-packages:
     - mpd
+    stage:
+      - -usr/share/alsa/alsa.conf
+      - -usr/share/alsa/cards/USB-Audio.conf
+      - -usr/share/alsa/cards/aliases.conf
+      - -usr/share/alsa/pcm/dmix.conf
+      - -usr/share/alsa/pcm/dsnoop.conf
+      - -usr/share/alsa/pcm/surround21.conf
+      - -usr/share/alsa/pcm/surround40.conf
+      - -usr/share/alsa/pcm/surround41.conf
+      - -usr/share/alsa/pcm/surround50.conf
+      - -usr/share/alsa/pcm/surround51.conf
+      - -usr/share/alsa/pcm/surround71.conf
   volumio-backend:
     plugin: nodejs
     source: .
@@ -73,5 +85,17 @@ parts:
     - --disable-oss
     - --disable-usbstream
     - --with-plugindir=/snap/$SNAPCRAFT_PROJECT_NAME/current/usr/lib/alsa-lib
+    - --disable-static
+    - LDFLAGS=-L$SNAPCRAFT_STAGE/usr/lib
+  alsa-utils:
+    after: [alsa-lib]
+    plugin: autotools
+    source: https://ftp.osuosl.org/pub/blfs/conglomeration/alsa-utils/alsa-utils-1.1.6.tar.bz2
+    configflags:
+    - --prefix=/usr
+    - --sysconfdir=/etc
+    - --libexec=/usr/lib
+    - --libdir=/usr/lib
+    - --localstatedir=/var
     - --disable-static
     - LDFLAGS=-L$SNAPCRAFT_STAGE/usr/lib
