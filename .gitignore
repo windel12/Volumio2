@@ -32,3 +32,10 @@ node_modules
 spotify-login.txt
 .idea
 *.iml
+
+# Snap artifacts
+parts/
+stage/
+prime/
+snap/.snapcraft/
+*.snap
