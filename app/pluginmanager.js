@@ -51,7 +51,18 @@ function PluginManager(ccommand, server) {
 
 	self.configurationFolder = process.env.DATADIR + '/configuration/';
 
-	var archraw = execSync('/usr/bin/dpkg --print-architecture', { encoding: 'utf8' });
+	if (process.env.ARCH) {
+        var archraw = process.env.ARCH;
+	} else {
+        try {
+            var archraw = execSync('/usr/bin/dpkg --print-architecture', { encoding: 'utf8' });
+        } catch(e) {
+        	self.logger.error('Could not identify architecture: '  + e);
+            var archraw = 'amd64';
+        }
+	}
+
+
 	arch = archraw.replace(/(\r\n|\n|\r)/gm,"")
 
 	var file = fs.readFileSync('/etc/os-release').toString().split('\n');
