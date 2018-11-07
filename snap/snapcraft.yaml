@@ -25,7 +25,7 @@ apps:
       DATADIR: $SNAP_COMMON
       BASEDIR: $SNAP/lib/node_modules/Volumio2
       ARCH: $SNAP_ARCH
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/samba
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/samba:$SNAP/usr/lib/alsa-lib:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio
     plugs:
       - pulseaudio
 parts:
