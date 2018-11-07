@@ -11,6 +11,7 @@ confinement: devmode
 apps:
   backend:
     command: bin/node $SNAP/lib/node_modules/Volumio2/index.js
+    daemon: simple
     environment:
       DATADIR: $SNAP_COMMON
       BASEDIR: $SNAP/lib/node_modules/Volumio2
@@ -22,6 +23,7 @@ apps:
       - pulseaudio
   mpd:
     command: usr/bin/mpd $SNAP/etc/mpd.conf
+    daemon: simple
     environment:
       DATADIR: $SNAP_COMMON
       BASEDIR: $SNAP/lib/node_modules/Volumio2
