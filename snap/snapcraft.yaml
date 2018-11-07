@@ -22,7 +22,7 @@ apps:
     plugs:
       - pulseaudio
   mpd:
-    command: usr/bin/mpd $SNAP/etc/mpd.conf
+    command: scripts/mpd_folders_setups.sh
     daemon: simple
     environment:
       DATADIR: $SNAP_COMMON
