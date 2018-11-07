@@ -111,6 +111,7 @@ parts:
     source: https://ftp.osuosl.org/pub/blfs/conglomeration/alsa-utils/alsa-utils-1.1.6.tar.bz2
     configflags:
     - --prefix=/usr
+    - --with-alsa-prefix=/snap/$SNAPCRAFT_PROJECT_NAME/current/usr/
     - --sysconfdir=/etc
     - --libexec=/usr/lib
     - --libdir=/usr/lib
@@ -118,6 +119,9 @@ parts:
     - --disable-static
     - --disable-nls
     - LDFLAGS=-L$SNAPCRAFT_STAGE/usr/lib
+    organize:
+      snap/$SNAPCRAFT_PROJECT_NAME/current/usr/lib/*: usr/lib
+      snap/$SNAPCRAFT_PROJECT_NAME/current/usr/bin/*: usr/bin
   nodejs:
     plugin: dump
     source: https://nodejs.org/dist/v8.11.0/node-v8.11.0-linux-x64.tar.gz
