@@ -14,13 +14,14 @@ apps:
     environment:
       DATADIR: $SNAP_COMMON
       BASEDIR: $SNAP/lib/node_modules/Volumio2
+      MPD_SOCKET_PATH: /tmp/mpdsocket
       ARCH: $SNAP_ARCH
       ALSA_CONFIG_PATH: $SNAP/etc/alsa.conf
       LD_LIBRARY_PATH: $SNAP/usr/lib/alsa-lib:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio:$LD_LIBRARY_PATH
     plugs:
       - pulseaudio
   mpd:
-    command: usr/bin/mpd
+    command: usr/bin/mpd $SNAP/etc/mpd.conf
     environment:
       DATADIR: $SNAP_COMMON
       BASEDIR: $SNAP/lib/node_modules/Volumio2
@@ -29,6 +30,11 @@ apps:
     plugs:
       - pulseaudio
 parts:
+  mpd-conf:
+    plugin: dump
+    source:  snap/local
+    organize:
+      "mpd.conf": "etc/mpd.conf"
   node-modules:
     plugin: dump
     source: http://repo.volumio.org/Volumio2/node_modules_x64.tar.gz
@@ -50,6 +56,7 @@ parts:
       - -usr/share/alsa/pcm/surround50.conf
       - -usr/share/alsa/pcm/surround51.conf
       - -usr/share/alsa/pcm/surround71.conf
+      - -etc/mpd.conf
   volumio-backend:
     plugin: dump
     source: .
