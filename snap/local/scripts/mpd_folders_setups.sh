@@ -20,4 +20,4 @@ fi
 
 
 echo "Starting mpd"
-usr/bin/mpd "$SNAP/etc/mpd.conf"
+exec "$SNAP/usr/bin/mpd" "$SNAP/etc/mpd.conf" --no-daemon --verbose
