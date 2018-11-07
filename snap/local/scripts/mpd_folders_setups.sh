@@ -20,4 +20,4 @@ fi
 
 
 echo "Starting mpd"
-usr/bin/mpd $SNAP/etc/mpd.conf
+usr/bin/mpd "$SNAP/etc/mpd.conf"
