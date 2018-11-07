@@ -18,6 +18,11 @@ apps:
     plugs:
       - pulseaudio
 parts:
+  node-modules:
+    plugin: dump
+    source: http://repo.volumio.org/Volumio2/node_modules_x64.tar.gz
+    organize:
+      "*": lib/node_modules/Volumio2/node_modules/
   dependencies:
     plugin: nil
     stage-packages:
@@ -35,8 +40,11 @@ parts:
       - -usr/share/alsa/pcm/surround51.conf
       - -usr/share/alsa/pcm/surround71.conf
   volumio-backend:
-    plugin: nodejs
+    plugin: dump
     source: .
+    organize:
+      "*": lib/node_modules/Volumio2/
+      ".*": lib/node_modules/Volumio2/
     build-packages:
       # Build tools
       - g++
@@ -46,9 +54,15 @@ parts:
 
       # Libs
       - libavahi-compat-libdnssd-dev
+      - libncurses5-dev
       # specify remote part build order
     after:
     - alsa
+  volumio-ui:
+    plugin: dump
+    source: https://github.com/volumio/Volumio2-UI/archive/dist.zip
+    organize:
+      "Volumio2-UI-dist": lib/node_modules/Volumio2/http/www
   alsa:
      after: [alsa-lib, alsa-plugins]
   alsa-lib:
@@ -98,4 +112,8 @@ parts:
     - --libdir=/usr/lib
     - --localstatedir=/var
     - --disable-static
+    - --disable-nls
     - LDFLAGS=-L$SNAPCRAFT_STAGE/usr/lib
+  nodejs:
+    plugin: dump
+    source: https://nodejs.org/dist/v8.11.0/node-v8.11.0-linux-x64.tar.gz
