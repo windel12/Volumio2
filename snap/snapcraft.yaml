@@ -17,6 +17,10 @@ apps:
       ARCH: $SNAP_ARCH
     plugs:
       - pulseaudio
+  mpd:
+    command: usr/bin/mpd
+    plugs:
+      - pulseaudio
 parts:
   node-modules:
     plugin: dump
