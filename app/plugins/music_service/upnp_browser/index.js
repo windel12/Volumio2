@@ -10,7 +10,7 @@ var Client = require('node-ssdp').Client;
 var xml2js = require('xml2js');
 var http = require('http');
 var browseDLNAServer = require(__dirname + "/dlna-browser.js");
-var client;
+var searchDLNAServer = require(__dirname + "/dlna-search.js");client;
 var singleBrowse = false;
 var debug = false;
 
@@ -517,7 +517,7 @@ ControllerUPNPBrowser.prototype.explodeUri = function(uri) {
 
 
 ControllerUPNPBrowser.prototype.search = function (query) {
-	var self = this;
+	/*var self = this;
 
 	var defer = libQ.defer();
 	var list = {
@@ -532,7 +532,13 @@ ControllerUPNPBrowser.prototype.search = function (query) {
 	};
 	defer.resolve()
 
-	return defer.promise;
+	return defer.promise;*/
+
+    var response;
+    var uri = query.uri.replace('upnp/', '');
+    response = searchDLNAServer.searchBrowser(uri, query.value);
+
+    return libQ.resolve();
 };
 
 ControllerUPNPBrowser.prototype.parseTrack = function (uri) {
