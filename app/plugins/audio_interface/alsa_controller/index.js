@@ -374,6 +374,17 @@ ControllerAlsa.prototype.getUIConfig = function () {
 				}
 			}
 
+            var advancedSettingsStatus = self.commandRouter.getAdvancedSettingsStatus();
+            if (advancedSettingsStatus === false) {
+                uiconf.sections[2].hidden = true;
+                uiconf.sections[3].content[0].hidden = true;
+                uiconf.sections[3].content[1].hidden = true;
+                uiconf.sections[3].content[4].hidden = true;
+                uiconf.sections[3].content[5].hidden = true;
+                uiconf.sections[3].content[6].hidden = true;
+                uiconf.sections[4].hidden = true;
+            }
+
             var rConf = self.commandRouter.getUIConfigOnPlugin('music_service', 'raat', '');
 			rConf.then((conf)=>{
 				if (conf.sections.length) {
@@ -868,6 +879,10 @@ ControllerAlsa.prototype.getAlsaCards = function () {
                     cards.push({id: id, name: name});
                 }
 			}
+        }
+        if (volumioDeviceName === 'primo') {
+            cards.unshift(cards[2]);
+            cards.splice(3, 1);
         }
 	} catch (e) {
 		var namestring = self.commandRouter.getI18nString('PLAYBACK_OPTIONS.NO_AUDIO_DEVICE_AVAILABLE');
@@ -1400,7 +1415,12 @@ ControllerAlsa.prototype.getAudioDevices  = function () {
 
 	}
 
-	var i2soptions = self.commandRouter.executeOnPlugin('system_controller', 'i2s_dacs', 'getI2sOptions');
+    if (volumioDeviceName === 'primo') {
+        var i2soptions = [];
+    } else {
+        var i2soptions = self.commandRouter.executeOnPlugin('system_controller', 'i2s_dacs', 'getI2sOptions');
+	}
+
 	var i2sstatus = self.commandRouter.executeOnPlugin('system_controller', 'i2s_dacs', 'getI2sStatus');
 
 	if(i2soptions.length > 0) {

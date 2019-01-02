@@ -618,7 +618,7 @@ function InterfaceWebUI(context) {
 					} else if (data.service === 'streaming_services') {
 						setTimeout(()=> {
                             var uri = data.uri.substring(0, data.uri.lastIndexOf("/") );
-                        	response = response=self.musicLibrary.executeBrowseSource(uri);
+                        	response = self.musicLibrary.executeBrowseSource(uri);
                         if (response != undefined) {
                             response.then(function (result) {
                                 selfConnWebSocket.emit('pushBrowseLibrary', result);
@@ -1549,7 +1549,6 @@ function InterfaceWebUI(context) {
 				var selfConnWebSocket = this;
 
 				var audiolist = self.commandRouter.executeOnPlugin('audio_interface', 'alsa_controller', 'getAudioDevices', '');
-
 				if (audiolist != undefined) {
 					audiolist.then(function (data) {
 						selfConnWebSocket.emit('pushOutputDevices', data);
