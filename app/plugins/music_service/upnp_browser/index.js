@@ -10,9 +10,10 @@ var Client = require('node-ssdp').Client;
 var xml2js = require('xml2js');
 var http = require('http');
 var browseDLNAServer = require(__dirname + "/dlna-browser.js");
-var searchDLNAServer = require(__dirname + "/dlna-search.js");client;
+var searchDLNAServer = require(__dirname + "/dlna-search.js");
 var singleBrowse = false;
 var debug = false;
+var client;
 
 // Define the ControllerUPNPBrowser class
 module.exports = ControllerUPNPBrowser;
@@ -65,6 +66,8 @@ ControllerUPNPBrowser.prototype.onStart = function() {
             var server = {'url': 'http://'+urlraw[0], 'port': urlraw[1], 'endpoint': headers}
             var location = server;
 
+            console.log(headers.LOCATION)
+
             xmlToJson(headers.LOCATION, function(err, data) {
                 try{
                     if (err) {
@@ -80,26 +83,30 @@ ControllerUPNPBrowser.prototype.onStart = function() {
 					}
                     server.lastTimeAlive = Date.now();
                     server.location = location.url + ":" + location.port;
-                    var services = data.root.device[0].serviceList[0].service;
-                    var ContentDirectoryService = false;
-                    //Finding ContentDirectory Service
-                    for(var s = 0; s < services.length; s++){
-                        if(services[s].serviceType[0] == "urn:schemas-upnp-org:service:ContentDirectory:1"){
-                            ContentDirectoryService = services[s];
-                            server.location += ContentDirectoryService.controlURL[0];
-                        }
-                    }
+                    if (data.root.device.length>0 && data.root.device[0].serviceList.length>0)
+					{
+						var services = data.root.device[0].serviceList[0].service;
+						var ContentDirectoryService = false;
+						//Finding ContentDirectory Service
+						for(var s = 0; s < services.length; s++){
+							if(services[s].serviceType[0] == "urn:schemas-upnp-org:service:ContentDirectory:1"){
+								ContentDirectoryService = services[s];
+								server.location += ContentDirectoryService.controlURL[0];
+							}
+						}
 
-                    var duplicate = false;
-                    for(var i = 0; i < self.DLNAServers.length; i++){
-                        if(self.DLNAServers[i].UDN === server.UDN){
-                            duplicate = true;
-                            self.DLNAServers[i] = server;
-                        }
-                    }
-                    if(!duplicate){
-                        self.DLNAServers.push(server);
-                    }
+						var duplicate = false;
+						for(var i = 0; i < self.DLNAServers.length; i++){
+							if(self.DLNAServers[i].UDN === server.UDN){
+								duplicate = true;
+								self.DLNAServers[i] = server;
+							}
+						}
+						if(!duplicate){
+							self.DLNAServers.push(server);
+						}
+					}
+
                 } catch(e){
                     self.logger.error(e);
                 }
