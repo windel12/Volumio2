@@ -9,6 +9,7 @@ global.exec = require('child_process').exec;
 var execSync = require('child_process').execSync;
 global.fs = require('fs');
 var libQ = require('kew');
+let mqtt = require('mqtt');
 
 function updater_comm(context) {
 	var self = this;
@@ -164,7 +165,11 @@ updater_comm.prototype.onStart = function () {
 
     setTimeout(()=>{
         if (process.env.PUSH_UPDATES_COMM === "true"){
-            self.pushUpdatesSubscribe();
+            if(process.env.PUSH_UPDATE_SOCKET === "true") {
+                self.pushUpdatesSubscribe();
+            } else {
+                self.mqttUpdateSubscribe();
+            }
         }
     },30000)
     return libQ.resolve();
@@ -322,3 +327,46 @@ updater_comm.prototype.pushUpdatesSubscribe = function () {
         self.logger.error('Could not retrieve system info and connect to Push Updates Facility: ' + e);
     })
 };
+
+updater_comm.prototype.mqttUpdateSubscribe = function () {
+    let self = this;
+
+    try {
+        var id = execSync('/usr/bin/md5sum /sys/class/net/eth0/address', {uid: 1000, gid: 1000}).toString().split(' ')[0];
+        var isHw = true;
+    } catch(e) {
+        var id = self.getAdditionalConf('system_controller', 'system', 'uuid', '0000000000000000000000000');
+        var isHw = false;
+    }
+    var systemInfo = self.commandRouter.executeOnPlugin('system_controller', 'system', 'getSystemVersion', '');
+    var name = self.getAdditionalConf('system_controller', 'system', 'playerName', 'none');
+
+    systemInfo.then((info)=>{
+        try {
+            let client = mqtt.connect('mqtt://mqtt.volumio.org:80');
+            var subscribeData = {
+                'id': id,
+                'systemversion': info.systemversion,
+                'variant': info.variant,
+                'hardware': info.hardware,
+                'isHw': isHw,
+                'name': name
+            };
+            client.on('connect', () => {
+                console.log('succesfully\n connected \nto blblbl');
+                client.subscribe('cleanRequests/');
+                client.subscribe('pushStats/' + id);
+                client.publish('pushUpdateSubscribe', JSON.stringify(subscribeData));
+            });
+            client.on('message', (topic, message) => {
+                console.log('receiving ', message.toString(), ' on: ', topic);
+                client.end();
+            });
+        } catch(e) {
+            self.logger.error('Could not establish connection with Push Updates Facility: ' + e);
+        }
+    })
+        .fail((e)=>{
+            self.logger.error('Could not retrieve system info and connect to Push Updates Facility: ' + e);
+        })
+}

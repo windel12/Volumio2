@@ -67,6 +67,8 @@ function CoreCommandRouter(server) {
     // Start the state machine
     this.stateMachine = new (require('./statemachine.js'))(this);
 
+    // to prevent multiple state push
+	this.currentState = {};
 
     // Start the volume controller
     this.volumeControl = new (require('./volumecontrol.js'))(this);
@@ -304,19 +306,22 @@ CoreCommandRouter.prototype.volumioSearch = function (data) {
 // Methods usually called by the State Machine --------------------------------------------------------------------
 
 CoreCommandRouter.prototype.volumioPushState = function (state) {
-	this.pushConsoleMessage('CoreCommandRouter::volumioPushState');
-	this.executeOnPlugin('system_controller', 'volumiodiscovery', 'saveDeviceInfo', state);
-	// Announce new player state to each client interface
-	var self = this;
-	var res = libQ.all(
-		libFast.map(this.pluginManager.getPluginNames('user_interface'), function (sInterface) {
-			var thisInterface = self.pluginManager.getPlugin('user_interface', sInterface);
-			if (typeof thisInterface.pushState === "function")
-				return thisInterface.pushState(state);
-		})
-	);
-	self.callCallback("volumioPushState", state);
-	return res;
+	if (state !== this.currentState) {
+		this.currentState = state;
+		this.pushConsoleMessage('CoreCommandRouter::volumioPushState');
+		this.executeOnPlugin('system_controller', 'volumiodiscovery', 'saveDeviceInfo', state);
+		// Announce new player state to each client interface
+		var self = this;
+		var res = libQ.all(
+			libFast.map(this.pluginManager.getPluginNames('user_interface'), function (sInterface) {
+				var thisInterface = self.pluginManager.getPlugin('user_interface', sInterface);
+				if (typeof thisInterface.pushState === "function")
+					return thisInterface.pushState(state);
+			})
+		);
+		self.callCallback("volumioPushState", state);
+		return res;
+	}
 };
 
 CoreCommandRouter.prototype.volumioResetState = function () {

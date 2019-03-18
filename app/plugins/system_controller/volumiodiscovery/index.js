@@ -291,14 +291,22 @@ ControllerVolumioDiscovery.prototype.connectToRemoteVolumio = function(uuid,ip) 
 		{
 			socket.on('pushState',function(data)
 			{
-				foundVolumioInstances.set(uuid+'.status',data.status);
-				foundVolumioInstances.set(uuid+'.volume',data.volume);
-				foundVolumioInstances.set(uuid+'.mute',data.mute);
-				foundVolumioInstances.set(uuid+'.artist',data.artist);
-				foundVolumioInstances.set(uuid+'.track',data.title);
-				foundVolumioInstances.set(uuid+'.albumart',data.albumart);
-				var toAdvertise=self.getDevices();
-				self.commandRouter.pushMultiroomDevices(toAdvertise);
+				if (foundVolumioInstances.get(uuid + '.status') !== data.status ||
+					foundVolumioInstances.get(uuid + '.volume') !== parseInt(data.volume) ||
+					foundVolumioInstances.get(uuid + '.mute') !== data.mute ||
+					foundVolumioInstances.get(uuid + '.artist') !== data.artist ||
+					foundVolumioInstances.get(uuid + '.track') !== data.title ||
+					foundVolumioInstances.get(uuid + '.albumart') !== data.albumart) {
+
+					foundVolumioInstances.set(uuid + '.status', data.status);
+					foundVolumioInstances.set(uuid + '.volume', data.volume);
+					foundVolumioInstances.set(uuid + '.mute', data.mute);
+					foundVolumioInstances.set(uuid + '.artist', data.artist);
+					foundVolumioInstances.set(uuid + '.track', data.title);
+					foundVolumioInstances.set(uuid + '.albumart', data.albumart);
+					var toAdvertise = self.getDevices();
+					self.commandRouter.pushMultiroomDevices(toAdvertise);
+				}
 			});
 		});
 
