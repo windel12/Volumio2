@@ -26,6 +26,9 @@ inputs.prototype.onVolumioStart = function()
 	this.config = new (require('v-conf'))();
 	this.config.loadFile(configFile);
 
+	self.addRestEndpoints();
+	self.scanAudioInputs();
+
     return libQ.resolve();
 }
 
@@ -89,7 +92,7 @@ inputs.prototype.setConf = function(varName, varValue) {
 	//Perform your installation tasks here
 };
 
-inputs.prototype.addToBrowseSources = function () {
+inputs.prototype.addToBrowseSources = function (data) {
 
 	this.commandRouter.volumioAddToBrowseSources(data);
 };
@@ -206,9 +209,42 @@ inputs.prototype.getAlbumArt = function (data, path) {
 	return url;
 };
 
+inputs.prototype.addRestEndpoints = function () {
+	let self = this;
 
+	self.logger.info('Adding inputs REST Endpoints');
 
+	let apiEndpoints = [{"endpoint": "scanAudioInputs", "type": "music_service",
+		"name": "inputs", "method": "scanAudioInputs"}];
 
+	for (var i in apiEndpoints) {
+		this.commandRouter.addPluginRestEndpoint(apiEndpoints[i]);
+	}
+}
+
+/**
+ * Scans through alsa arecord for input devices and adds them as browse sources.
+ */
+inputs.prototype.scanAudioInputs = function () {
+	let self = this;
+
+	let inputs = execSync("arecord -l");
+	let i = 1;
+
+	let bruh = inputs.toString().split("\n");
+
+	while (i < bruh.length){
+        let name = bruh[i].substring(bruh[i].indexOf("[") + 1, bruh[i].indexOf("]"));
+
+        self.logger.info(name);
+
+        if (name.length > 0){
+            self.addToBrowseSources({"name": name});
+        }
+
+        i += 3; // iterates from name to name, skipping two lines everytime
+    }
+}
 
 inputs.prototype.search = function (query) {
 	var self=this;
