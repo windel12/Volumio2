@@ -1,0 +1,41 @@
+{  "page": {
+  "label": "TRANSLATE.PLUGIN_SETTINGS.SHAIRPORT_SYNC_SETTINGS"
+},
+  "sections": [
+    {
+      "id": "language_selector",
+      "element": "section",
+      "label": "TRANSLATE.PLUGIN_SETTINGS.OPERATION_SETTINGS",
+      "icon": "dot-circle-o",
+      "onSave": {"type":"controller", "endpoint":"music_service/airplay_emulation", "method":"saveAirplayEmulationSettings"},
+      "saveButton": {
+        "label": "TRANSLATE.COMMON.SAVE",
+        "data": [
+          "shairport_convenience_switching"
+        ]
+      },
+      "content": [
+        {
+          "id": "shairport_convenience_switching",
+          "element": "select",
+          "doc": "TRANSLATE.PLUGIN_SETTINGS.OPERATION_SETTINGS_DOC",
+          "label": "TRANSLATE.PLUGIN_SETTINGS.OPERATION_SETTINGS",
+          "value":  {
+            "value": "convenience_switching",
+            "label": "TRANSLATE.PLUGIN_SETTINGS.CONVENIENCE_SWITCHING"
+          },
+          "options": [
+            {
+              "value": "convenience_switching",
+              "label": "TRANSLATE.PLUGIN_SETTINGS.CONVENIENCE_SWITCHING"
+            },
+            {
+              "value": "input",
+              "label": "TRANSLATE.PLUGIN_SETTINGS.SHOW_AS_AN_INPUT"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

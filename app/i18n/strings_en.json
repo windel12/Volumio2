@@ -423,5 +423,11 @@
     "MYVOLUMIO_NOT_ENABLED_ON_DEVICE":"MyVolumio is not enabled on this device",
     "ENABLE_YOUR_DEVICE_TO_USE_THIS_FUNCTIONALITY":"To use this functionality, please enable MyVolumio on this device from your device list",
     "GOTO_DEVICE_LIST":"Go to My Devices list"
+  },
+  "PLUGIN_SETTINGS":{
+    "OPERATION_SETTINGS":"Operation setting",
+    "OPERATION_SETTINGS_DOC":"This allows to select whether this functionality is using convenience switching (always on) or selectable as an input.",
+    "SHOW_AS_AN_INPUT":"Show as an Input",
+    "CONVENIENCE_SWITCHING":"Convenience Switching"
   }
 }

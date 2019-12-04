@@ -20,6 +20,7 @@ function AirPlayInterface(context) {
     // Save a reference to the parent commandRouter
     this.context = context;
     this.commandRouter = this.context.coreCommand;
+    this.configManager = this.context.configManager;
     this.logger = this.commandRouter.logger;
     this.obj={
         status: 'play',
@@ -77,6 +78,12 @@ AirPlayInterface.prototype.onStop = function () {
     return libQ.resolve();
 };
 
+AirPlayInterface.prototype.getConfigurationFiles = function() {
+    var self = this;
+
+    return ['config.json'];
+};
+
 AirPlayInterface.prototype.onRestart = function () {
 };
 
@@ -87,6 +94,58 @@ AirPlayInterface.prototype.onUninstall = function () {
 };
 
 AirPlayInterface.prototype.getUIConfig = function () {
+    var self = this;
+    var defer=libQ.defer();
+    self.commandRouter.i18nJson(__dirname+'/../../../i18n/strings_'+config.get('language_code')+'.json',
+        __dirname+'/../../../i18n/strings_en.json',
+        __dirname + '/UIConfig.json')
+        .then(function(uiconf)
+        {
+            var languagesdata = fs.readJsonSync(('/volumio/app/plugins/miscellanea/appearance/languages.json'),  'utf8', {throws: false});
+            var language = config.get('language');
+            var language_code = config.get('language_code');
+
+
+            self.configManager.setUIConfigParam(uiconf, 'sections[0].content[0].value', {
+                value: language_code,
+                label: language
+            });
+            for (var n = 0; n < languagesdata.languages.length; n++){
+
+                self.configManager.pushUIConfigParam(uiconf, 'sections[0].content[0].options', {
+                    value: languagesdata.languages[n].code,
+                    label: languagesdata.languages[n].name
+                });
+            };
+
+            try {
+                var sysVariant = execSync("cat /etc/os-release | grep ^VOLUMIO_VARIANT | tr -d 'VOLUMIO_VARIANT=\"'").toString().replace('\n','');
+            } catch(e) {
+                self.logger.error(e)
+            }
+
+            if (fs.existsSync('/volumio/http/www3')) {
+                self.configManager.setUIConfigParam(uiconf, 'sections[2].hidden', false);
+            }
+
+            var showVolumio3UI = false;
+            if (process.env.VOLUMIO_3_UI === 'true') {
+                showVolumio3UI = true;
+            }
+            self.configManager.setUIConfigParam(uiconf, 'sections[2].content[0].value', showVolumio3UI);
+
+            defer.resolve(uiconf);
+        })
+        .fail(function(e)
+        {   self.logger.error('Error getting Configuration page: ' + e);
+            defer.reject(new Error());
+        })
+
+
+    /*var uiconf = fs.readJsonSync(__dirname + '/UIConfig.json');
+     */
+    return defer.promise;
+};
 };
 
 AirPlayInterface.prototype.setUIConfig = function (data) {
