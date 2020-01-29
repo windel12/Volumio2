@@ -89,8 +89,8 @@ RESTApiPlayback.prototype.playbackCommands=function(req, res) {
             self.logStart('Client requests Volumio next')
                 .then(self.commandRouter.volumioNext.bind(self.commandRouter))
                 .fail(self.pushError.bind(self))
-                .done(function () {
-                    res.json({'time':timeStart, 'response':req.query.cmd + " Success"});
+                .done(function (trackName) {
+                    res.json(trackName);
                 });
         }
         else if(req.query.cmd == "volume"){

@@ -19,6 +19,18 @@ RESTApiSystem.prototype.ping=function(req, res) {
     res.send('pong');
 };
 
+RESTApiSystem.prototype.shutdown=function(req, res) {
+    var self = this;
+    res.send('going to shutdown');
+    self.commandRouter.shutdown();
+};
+
+RESTApiSystem.prototype.reboot=function(req, res) {
+    var self = this;
+    res.send('going to reboot');
+    self.commandRouter.reboot();
+};
+
 RESTApiSystem.prototype.getSystemVersion=function(req, res) {
     var self = this;
     var returnedData = self.commandRouter.executeOnPlugin('system_controller', 'system', 'getSystemVersion');
