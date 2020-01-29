@@ -311,11 +311,11 @@ CoreStateMachine.prototype.pause = function (promisedResponse) {
 // These are 'this' aware, and may or may not return a promise
 
 // Update the currently active track block
-CoreStateMachine.prototype.updateTrackBlock = function () {
+CoreStateMachine.prototype.updateTrackBlock = function (trackName) {
 	this.commandRouter.pushConsoleMessage('CoreStateMachine::updateTrackBlock');
 	this.currentTrackBlock = this.playQueue.getTrackBlock(this.currentPosition);
 
-	return libQ.resolve();
+	return libQ.resolve(trackName);
 };
 
 // Perform a clear-add-play action on the current track block
@@ -1132,8 +1132,7 @@ CoreStateMachine.prototype.play = function (index) {
 
 				self.commandRouter.pushToastMessage('success',self.commandRouter.getI18nString('COMMON.PLAY_TITLE'),self.commandRouter.getI18nString('COMMON.PLAY_TEXT')+trackBlock.name);
 
-				return libQ.resolve();
-
+				return libQ.resolve(trackBlock.name);
 			}
 		});
 };
@@ -1279,12 +1278,12 @@ CoreStateMachine.prototype.next = function (promisedResponse) {
 			console.log('UPNP Next');
 		} else {
 
-		this.stop()
+		return this.stop()
 			.then(function()
 			{
 				self.currentPosition = self.getNextIndex();
 
-				return libQ.resolve();
+				//return libQ.resolve();
 			})
 			.then(self.play.bind(self))
 			.then(self.updateTrackBlock.bind(self));

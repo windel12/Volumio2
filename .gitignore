@@ -33,3 +33,6 @@ spotify-login.txt
 .idea
 *.iml
 .DS_Store
+http/www
+http/www3
+app/plugins/system_controller/network/wireless.js
