@@ -1086,7 +1086,6 @@ CoreStateMachine.prototype.play = function (index) {
 				self.randomQueue.modifyQueueLength(index);
 			}
 
-
 			if(index!==undefined)
 			{
 				return self.stop()
@@ -1109,8 +1108,7 @@ CoreStateMachine.prototype.play = function (index) {
 
 				var thisPlugin = self.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
 
-				if(self.currentStatus==='stop')
-				{
+				if (self.currentStatus==='stop') {
 					//queuing
 					self.currentSeek=0;
 					self.startPlaybackTimer();
@@ -1120,7 +1118,6 @@ CoreStateMachine.prototype.play = function (index) {
                     } else {
                         this.commandRouter.pushConsoleMessage('WARNING: No clearAddPlayTrack method for plugin ' + trackBlock.service);
                     }
-
 				}
 				else  if(self.currentStatus==='pause')
 				{
@@ -1131,6 +1128,12 @@ CoreStateMachine.prototype.play = function (index) {
                     } else {
                         this.commandRouter.pushConsoleMessage('WARNING: No resume method for plugin ' + trackBlock.service);
                     }
+				} else if (self.currentStatus === 'next') {
+					if (typeof thisPlugin.addAndNext === "function") {
+						thisPlugin.addAndNext(trackBlock);
+					} else {
+						this.commandRouter.pushConsoleMessage('WARNING: No addAndNext method for plugin ' + trackBlock.service);
+					}
 				}
 
 				self.commandRouter.pushToastMessage('success',self.commandRouter.getI18nString('COMMON.PLAY_TITLE'),self.commandRouter.getI18nString('COMMON.PLAY_TEXT')+trackBlock.name);
@@ -1280,16 +1283,20 @@ CoreStateMachine.prototype.next = function (promisedResponse) {
 		} else if (this.isUpnp){
 			console.log('UPNP Next');
 		} else {
+			// return this.stop()
+            //     .then(function()
+            //     {
+            //         self.currentPosition = self.getNextIndex();
+			//
+            //         //return libQ.resolve();
+            //     })
+            //     .then(self.play.bind(self))
+            //     .then(self.updateTrackBlock.bind(self));
 
-		return this.stop()
-			.then(function()
-			{
-				self.currentPosition = self.getNextIndex();
-
-				//return libQ.resolve();
-			})
-			.then(self.play.bind(self))
-			.then(self.updateTrackBlock.bind(self));
+			self.currentStatus = 'next';
+			self.currentPosition = self.getNextIndex();
+			return self.play()
+				.then(self.updateTrackBlock.bind(self));
 		}
 	}
 };
