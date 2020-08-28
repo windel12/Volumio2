@@ -715,37 +715,37 @@ ControllerMpd.prototype.mpdEstablish = function () {
     //self.fswatch();
     // When playback status changes
 
-    // self.clientMpd.on('system', function (status) {
-    //     var timeStart = Date.now();
-    //
-    //     if (!ignoreupdate && status != 'playlist' && status != undefined) {
-    //         self.logStart('MPD announces state update: ' + status)
-    //             .then(self.getState.bind(self))
-    //             .then(self.pushState.bind(self))
-    //             .fail(self.pushError.bind(self))
-    //             .done(function () {
-    //                 return self.logDone(timeStart);
-    //             });
-    //     } else {
-    //         self.logger.info('Ignoring MPD Status Update');
-    //     }
-    // });
+    self.clientMpd.on('system', function (status) {
+        var timeStart = Date.now();
+
+        if (!ignoreupdate && status != 'playlist' && status != undefined) {
+            self.logStart('MPD announces state update: ' + status)
+                .then(self.getState.bind(self))
+                .then(self.pushState.bind(self))
+                .fail(self.pushError.bind(self))
+                .done(function () {
+                    return self.logDone(timeStart);
+                });
+        } else {
+            self.logger.info('Ignoring MPD Status Update');
+        }
+    });
 
 
-    // self.clientMpd.on('system-playlist', function () {
-    //     var timeStart = Date.now();
-    //
-    //     if (!ignoreupdate) {
-    //         self.logStart('MPD announces system playlist update')
-    //             .then(self.updateQueue.bind(self))
-    //             .fail(self.pushError.bind(self))
-    //             .done(function () {
-    //                 return self.logDone(timeStart);
-    //             });
-    //     } else {
-    //         self.logger.info('Ignoring MPD Status Update');
-    //     }
-    // });
+    self.clientMpd.on('system-playlist', function () {
+        var timeStart = Date.now();
+
+        if (!ignoreupdate) {
+            self.logStart('MPD announces system playlist update')
+                .then(self.updateQueue.bind(self))
+                .fail(self.pushError.bind(self))
+                .done(function () {
+                    return self.logDone(timeStart);
+                });
+        } else {
+            self.logger.info('Ignoring MPD Status Update');
+        }
+    });
 
     //Notify that The mpd DB has changed
     self.clientMpd.on('system-database', function () {
@@ -2847,21 +2847,11 @@ ControllerMpd.prototype.clearAddPlayTrack = function (track) {
 
         var safeUri = uri.replace(/"/g,'\\"');
 
-        /*return self.sendMpdCommand('stop',[])
+        return self.sendMpdCommand('stop',[])
             .then(function()
             {
                 return self.sendMpdCommand('clear',[]);
             })
-            .then(function()
-            {
-                return self.sendMpdCommand('add "'+safeUri+'"',[]);
-            })
-            .then(function()
-            {
-                return self.sendMpdCommand('play',[]);
-            });*/
-
-        return self.sendMpdCommand('clear',[])
             .then(function()
             {
                 return self.sendMpdCommand('add "'+safeUri+'"',[]);

@@ -1129,6 +1129,10 @@ CoreStateMachine.prototype.play = function (index) {
                         this.commandRouter.pushConsoleMessage('WARNING: No resume method for plugin ' + trackBlock.service);
                     }
 				} else if (self.currentStatus === 'next') {
+					self.currentStatus = 'stop'; // restore changed state
+					self.currentSeek=0;
+					self.startPlaybackTimer();
+
 					if (typeof thisPlugin.addAndNext === "function") {
 						thisPlugin.addAndNext(trackBlock);
 					} else {
@@ -1283,23 +1287,29 @@ CoreStateMachine.prototype.next = function (promisedResponse) {
 		} else if (this.isUpnp){
 			console.log('UPNP Next');
 		} else {
-			// return this.stop()
-            //     .then(function()
-            //     {
-            //         self.currentPosition = self.getNextIndex();
-			//
-            //         //return libQ.resolve();
-            //     })
-            //     .then(self.play.bind(self))
-            //     .then(self.updateTrackBlock.bind(self));
+			return this.stop()
+                .then(function()
+                {
+                    self.currentPosition = self.getNextIndex();
 
-			self.currentStatus = 'next';
-			self.currentPosition = self.getNextIndex();
-			return self.play()
-				.then(self.updateTrackBlock.bind(self));
+                    //return libQ.resolve();
+                })
+                .then(self.play.bind(self))
+                .then(self.updateTrackBlock.bind(self));
 		}
 	}
 };
+
+CoreStateMachine.prototype.next2 = function (promisedResponse) {
+	var self=this;
+
+	self.currentSeek = 0;
+	self.stopPlaybackTimer();
+	self.currentStatus = 'next';
+	self.currentPosition = self.getNextIndex();
+	return self.play()
+		.then(self.updateTrackBlock.bind(self));
+}
 
 
 // Volumio Pause Command
