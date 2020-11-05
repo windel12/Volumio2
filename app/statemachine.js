@@ -1130,14 +1130,28 @@ CoreStateMachine.prototype.next = function (promisedResponse) {
     } else if (this.isUpnp) {
       console.log('UPNP Next');
     } else {
-      this.stop()
-        .then(function () {
-          self.currentPosition = self.getNextIndex();
+      // this.stop()
+      //   .then(function () {
+      //     self.currentPosition = self.getNextIndex();
+      //
+      //     return libQ.resolve();
+      //   })
+      //   .then(self.play.bind(self))
+      //   .then(self.updateTrackBlock.bind(self));
 
-          return libQ.resolve();
-        })
-        .then(self.play.bind(self))
-        .then(self.updateTrackBlock.bind(self));
+      self.currentPosition = self.getNextIndex();
+      var trackBlock = self.getTrack(self.currentPosition);
+
+      self.currentSeek = 0;
+      self.startPlaybackTimer();
+
+      var thisPlugin = self.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+      if (typeof thisPlugin.playNextTrack === 'function') {
+        thisPlugin.playNextTrack(trackBlock)
+            .then(self.updateTrackBlock.bind(self));
+      } else {
+        this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.consumeState.service);
+      }
     }
   }
 };

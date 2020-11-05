@@ -2677,6 +2677,18 @@ ControllerMpd.prototype.clearAddPlayTrack = function (track) {
   }
 };
 
+ControllerMpd.prototype.playNextTrack = function (track) {
+  var self = this;
+
+  var uri = self.sanitizeUri(track.uri);
+  var safeUri = uri.replace(/"/g, '\\"');
+
+  return self.sendMpdCommand('add "' + safeUri + '"', [])
+      .then(function () {
+        return self.sendMpdCommand('next', [])
+      })
+};
+
 ControllerMpd.prototype.seek = function (position) {
   var self = this;
   self.logger.info('ControllerMpd::seek');
