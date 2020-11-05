@@ -33,3 +33,7 @@ spotify-login.txt
 .idea
 *.iml
 .DS_Store
+
+http
+package-lock.json
+
