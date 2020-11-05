@@ -195,7 +195,7 @@ volumioAppearance.prototype.getBackgrounds = function () {
     }
     files.forEach(function (f) {
       if (f.indexOf('thumbnail-') < 0) {
-        backgroundsArray.push({'name': f.split('.')[0].capitalize(), 'path': f, 'thumbnail': 'thumbnail-' + f});
+        //backgroundsArray.push({'name': f.split('.')[0].capitalize(), 'path': f, 'thumbnail': 'thumbnail-' + f});
       }
     });
     var background_title = config.get('background_title');
