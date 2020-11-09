@@ -154,10 +154,10 @@ ControllerMpd.prototype.addPlay = function (fileName) {
             {command: 'play', parameters: []}
         ])
     }
-	/*.then(function() {
-	 self.commandRouter.volumioPlay();
+    /*.then(function() {
+     self.commandRouter.volumioPlay();
 
-	 });*/
+     });*/
 };
 
 ControllerMpd.prototype.addPlayCue = function (data) {
@@ -272,17 +272,17 @@ ControllerMpd.prototype.getState = function () {
 
     var self = this;
     return self.sendMpdCommand('status', [])
-	/*.then(function(data) {
-	 return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
-	 })*/
+        /*.then(function(data) {
+         return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
+         })*/
         .then(function (objState) {
             var collectedState = self.parseState(objState);
             // If there is a track listed as currently playing, get the track info
             if (collectedState.position !== null) {
                 return self.sendMpdCommand('playlistinfo', [collectedState.position])
-				/*.then(function(data) {
-				 return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
-				 })*/
+                    /*.then(function(data) {
+                     return self.haltIfNewerUpdateRunning(data, timeCurrentUpdate);
+                     })*/
                     .then(function (objTrackInfo) {
                         var trackinfo = self.parseTrackInfo(objTrackInfo);
                         collectedState.isStreaming = trackinfo.isStreaming != undefined ? trackinfo.isStreaming : false;
@@ -714,7 +714,6 @@ ControllerMpd.prototype.mpdEstablish = function () {
     // TODO remove pertaining function when properly found out we don't need em
     //self.fswatch();
     // When playback status changes
-
     self.clientMpd.on('system', function (status) {
         var timeStart = Date.now();
 
@@ -729,6 +728,7 @@ ControllerMpd.prototype.mpdEstablish = function () {
         } else {
             self.logger.info('Ignoring MPD Status Update');
         }
+
     });
 
 
@@ -838,7 +838,7 @@ ControllerMpd.prototype.savePlaybackOptions = function (data) {
         self.config.set('playback_mode', data['playback_mode'].value);
         setTimeout(()=>{
             self.commandRouter.broadcastUiSettings();
-    },300)
+        },300)
     }
 
     if (isonew != iso) {
@@ -939,7 +939,7 @@ ControllerMpd.prototype.saveResampleOptions = function (data) {
                     //self.commandRouter.pushToastMessage('error', self.commandRouter.getI18nString('mpd_player_restart'), self.commandRouter.getI18nString('mpd_player_restart_error'));
                 }
                 else
-                //self.commandRouter.pushToastMessage('success', self.commandRouter.getI18nString('mpd_player_restart'), self.commandRouter.getI18nString('mpd_player_restart_success'));
+                    //self.commandRouter.pushToastMessage('success', self.commandRouter.getI18nString('mpd_player_restart'), self.commandRouter.getI18nString('mpd_player_restart_success'));
 
                     defer.resolve({});
             });
@@ -2241,9 +2241,9 @@ ControllerMpd.prototype.explodeUri = function(uri) {
         });
     }
     else if(uri.startsWith('artists://')) {
-		/*
-		 artists://AC%2FDC/Rock%20or%20Bust in service mpd
-		 */
+        /*
+         artists://AC%2FDC/Rock%20or%20Bust in service mpd
+         */
         var splitted = uri.split('/');
 
         if(splitted.length===4) {
@@ -2764,9 +2764,9 @@ ControllerMpd.prototype.explodeISOFile = function (uri) {
                             title = name;
                         }
                         self.commandRouter.logger.info("ALBUMART " + self.getAlbumArt({
-                                artist: artist,
-                                album: album
-                            }, uri));
+                            artist: artist,
+                            album: album
+                        }, uri));
                         self.commandRouter.logger.info("URI " + uri);
 
                         ISOlist.push({
@@ -2861,20 +2861,9 @@ ControllerMpd.prototype.clearAddPlayTrack = function (track) {
                 return self.sendMpdCommand('play',[]);
             });
     }
+
 };
 
-ControllerMpd.prototype.addAndNext = function(track) {
-    var self = this;
-
-    var uri = self.sanitizeUri(track.uri);
-    var safeUri = uri.replace(/"/g,'\\"');
-
-    return self.sendMpdCommand('add "'+safeUri+'"',[])
-        .then(function()
-        {
-            return self.sendMpdCommand('next',[]);
-        });
-};
 
 ControllerMpd.prototype.seek = function(position) {
     var self=this;
@@ -3251,14 +3240,14 @@ ControllerMpd.prototype.listAlbumSongs = function (uri,index,previous) {
         var safeArtist = artist.replace(/"/g,'\\"');
         var safeAlbumName = albumName.replace(/"/g,'\\"');
 
-		/* This section is commented because we should use albumartist: if albumartist tag does not exist, it will fallback to artist
-		 if (compilation.indexOf(artist)>-1) {       //artist is in compilation array so use albumartist
-		 var typeofartist = 'albumartist';
-		 }
-		 else {                                      //artist is NOT in compilation array so use artist
-		 var typeofartist = 'artist';
-		 }
-		 */
+        /* This section is commented because we should use albumartist: if albumartist tag does not exist, it will fallback to artist
+         if (compilation.indexOf(artist)>-1) {       //artist is in compilation array so use albumartist
+         var typeofartist = 'albumartist';
+         }
+         else {                                      //artist is NOT in compilation array so use artist
+         var typeofartist = 'artist';
+         }
+         */
         var typeofartist = 'albumartist';
         var findstring = "find album \"" + safeAlbumName + "\" " + typeofartist + " \"" + safeArtist + "\" ";
     }
@@ -4062,21 +4051,21 @@ ControllerMpd.prototype.checkUSBDrives = function(){
     var usbList = self.lsInfo('music-library/USB');
     usbList.then((list)=>{
         if (list.navigation.lists[0].items.length > 0) {
-        var diskArray = list.navigation.lists[0].items;
-        for (var i in diskArray) {
-            var disk = diskArray[i];
-            if  (disk.uri){
-                var path = disk.uri.replace('music-library', '/mnt');
-                if (!fs.existsSync(path)) {
-                    var mpdPath = path.replace('/mnt/','');
-                    return this.sendMpdCommand('update', ['USB']);
+            var diskArray = list.navigation.lists[0].items;
+            for (var i in diskArray) {
+                var disk = diskArray[i];
+                if  (disk.uri){
+                    var path = disk.uri.replace('music-library', '/mnt');
+                    if (!fs.existsSync(path)) {
+                        var mpdPath = path.replace('/mnt/','');
+                        return this.sendMpdCommand('update', ['USB']);
+                    }
                 }
             }
         }
-    }
-}).fail((e)=>{
+    }).fail((e)=>{
         self.logger.error('Error in refreshing USB drives list' + e);
-})
+    })
 }
 
 ControllerMpd.prototype.deleteFolder = function(data){
@@ -4094,17 +4083,17 @@ ControllerMpd.prototype.deleteFolder = function(data){
                     var list = self.lsInfo(data.curUri);
                     list.then((list) => {
                         var items = list.navigation.lists[0].items;
-                    for (var i in items) {
-                        if (items[i].uri === data.item.uri) {
-                            list.navigation.lists[0].items.splice(i, 1);
+                        for (var i in items) {
+                            if (items[i].uri === data.item.uri) {
+                                list.navigation.lists[0].items.splice(i, 1);
+                            }
                         }
-                    }
-                    defer.resolve(list)
-                }).
+                        defer.resolve(list)
+                    }).
                     fail((e) => {
                         self.logger.error('Error in refreshing USB drives list' + e);
-                    defer.reject(e)
-                })
+                        defer.reject(e)
+                    })
                 }
             });
 

@@ -101,7 +101,7 @@ CoreCommandRouter.prototype.volumioPrevious = function () {
 // Volumio Next
 CoreCommandRouter.prototype.volumioNext = function () {
 	this.pushConsoleMessage('CoreCommandRouter::volumioNext');
-	return this.stateMachine.next2();
+	return this.stateMachine.next();
 };
 
 // Volumio Get State

@@ -12,54 +12,54 @@ function CoreStateMachine(commandRouter) {
 
 	this.currentPosition=0;
 	this.currentConsume=false;
-    this.currentRepeat=false;
-    this.currentRepeatSingleSong=false;
+	this.currentRepeat=false;
+	this.currentRepeatSingleSong=false;
 	this.prefetchDone=false;
 	this.askedForPrefetch=false;
 	this.simulateStopStartDone=false;
-    this.volatileService="";
-    this.volatileState={};
+	this.volatileService="";
+	this.volatileState={};
 	this.isVolatile = false;
-    this.currentDisableVolumeControl = false;
-    this.previousTrackonPrev = false;
-    /**
-     * This field tells the system if it is currenty running in consume mode
-     * @type {boolean} true or false wether the system is in consume mode
-     */
+	this.currentDisableVolumeControl = false;
+	this.previousTrackonPrev = false;
+	/**
+	 * This field tells the system if it is currenty running in consume mode
+	 * @type {boolean} true or false wether the system is in consume mode
+	 */
 	this.isConsume=false;
 
-    /**
-     * This variable contains the consume state to return when getState is being invoked
-     * @type {{}} JSON containing the state
-     */
+	/**
+	 * This variable contains the consume state to return when getState is being invoked
+	 * @type {{}} JSON containing the state
+	 */
 	this.consumeState={};
 
-    /**
-     * This variable contains the service to handle when in consume mode
-     */
+	/**
+	 * This variable contains the service to handle when in consume mode
+	 */
 	this.consumeUpdateService;
 
 	/**
-	*This field tells the system if it is currenty running in consume mode, but no metadata should be retrieved
-	* @type {boolean} true or false
-	*/
+	 *This field tells the system if it is currenty running in consume mode, but no metadata should be retrieved
+	 * @type {boolean} true or false
+	 */
 	this.consumeIgnoreMetadata = false;
 
-    this.isUpnp = false;
+	this.isUpnp = false;
 
 	this.randomQueue = new RandomQueue(this);
 	this.playQueue = new (require('./playqueue.js'))(commandRouter, this);
 	this.resetVolumioState();
-    this.commandRouter.initPlayerControls();
+	this.commandRouter.initPlayerControls();
 }
 
 // Public Methods ---------------------------------------------------------------------------------------
 // Get the current state of the player
 CoreStateMachine.prototype.getState = function () {
-    this.commandRouter.pushDebugConsoleMessage('CoreStateMachine::getState');
+	this.commandRouter.pushDebugConsoleMessage('CoreStateMachine::getState');
 
-    if(this.isVolatile)
-    {
+	if(this.isVolatile)
+	{
 		// Here we are in volatile state mode, so we do not take playback informations from the queue but rather from the volatileState
 		if (this.volatileState.stream === undefined) {
 			this.volatileState.stream = false;
@@ -69,132 +69,132 @@ CoreStateMachine.prototype.getState = function () {
 			this.volatileState.trackType = '';
 		}
 
-        if (this.volatileState.albumart === undefined) {
-            this.volatileState.albumart = '/albumart';
-        }
+		if (this.volatileState.albumart === undefined) {
+			this.volatileState.albumart = '/albumart';
+		}
 
-        if (this.volatileState.repeatMode === undefined) {
-            this.volatileState.repeatMode = 'all';
-        }
+		if (this.volatileState.repeatMode === undefined) {
+			this.volatileState.repeatMode = 'all';
+		}
 
-        return {
-            status: this.volatileState.status,
-            title: this.volatileState.title,
-            artist: this.volatileState.artist,
-            album: this.volatileState.album,
-            albumart: this.volatileState.albumart,
-            uri: this.volatileState.uri,
-            trackType: this.volatileState.trackType,
-            seek: this.volatileState.seek,
-            duration: this.volatileState.duration,
-            samplerate: this.volatileState.samplerate,
-            bitdepth: this.volatileState.bitdepth,
-            channels: this.volatileState.channels,
-            random: this.volatileState.random,
-            repeat: this.volatileState.repeat,
-            repeatSingle:this.volatileState.repeatSingle,
-            enableSkip: this.volatileState.enableSkip,
-            consume: false,
-            volume: this.currentVolume,
-            mute: this.currentMute,
-            disableVolumeControl: this.currentDisableVolumeControl,
-            stream: this.volatileState.stream,
-            updatedb: this.currentUpdate,
+		return {
+			status: this.volatileState.status,
+			title: this.volatileState.title,
+			artist: this.volatileState.artist,
+			album: this.volatileState.album,
+			albumart: this.volatileState.albumart,
+			uri: this.volatileState.uri,
+			trackType: this.volatileState.trackType,
+			seek: this.volatileState.seek,
+			duration: this.volatileState.duration,
+			samplerate: this.volatileState.samplerate,
+			bitdepth: this.volatileState.bitdepth,
+			channels: this.volatileState.channels,
+			random: this.volatileState.random,
+			repeat: this.volatileState.repeat,
+			repeatSingle:this.volatileState.repeatSingle,
+			enableSkip: this.volatileState.enableSkip,
+			consume: false,
+			volume: this.currentVolume,
+			mute: this.currentMute,
+			disableVolumeControl: this.currentDisableVolumeControl,
+			stream: this.volatileState.stream,
+			updatedb: this.currentUpdate,
 			volatile: true,
 			trackType: this.volatileState.trackType,
-            disableUiControls: this.volatileState.disableUiControls,
-            service: this.volatileState.service
-        };
-    }
-    else if(this.isConsume)
-    {
-        // checking consumeState or the below code will throw an exception
-        if(this.consumeState)
-        {
-        	//we identify a webradio stream from its duration which is zero
-        if(this.consumeState.duration == '0') {
-            this.consumeState.stream = true;
-            this.consumeState.service = 'webradio';
-            this.consumeState.trackType = 'webradio';
-            this.consumeState.samplerate = '';
-            this.consumeState.bitdepth =  '';
-        }
-			
-            return {
-                status: this.consumeState.status,
-                position: this.currentPosition,
-                title: this.consumeState.title,
-                artist: this.consumeState.artist,
-                album: this.consumeState.album,
-                albumart: this.consumeState.albumart,
-                uri: this.consumeState.uri,
-                trackType: this.consumeState.trackType,
-                seek: this.currentSeek,
-                duration: this.consumeState.duration,
-                samplerate: this.consumeState.samplerate,
-                bitdepth: this.consumeState.bitdepth,
-                channels: this.consumeState.channels,
+			disableUiControls: this.volatileState.disableUiControls,
+			service: this.volatileState.service
+		};
+	}
+	else if(this.isConsume)
+	{
+		// checking consumeState or the below code will throw an exception
+		if(this.consumeState)
+		{
+			//we identify a webradio stream from its duration which is zero
+			if(this.consumeState.duration == '0') {
+				this.consumeState.stream = true;
+				this.consumeState.service = 'webradio';
+				this.consumeState.trackType = 'webradio';
+				this.consumeState.samplerate = '';
+				this.consumeState.bitdepth =  '';
+			}
+
+			return {
+				status: this.consumeState.status,
+				position: this.currentPosition,
+				title: this.consumeState.title,
+				artist: this.consumeState.artist,
+				album: this.consumeState.album,
+				albumart: this.consumeState.albumart,
+				uri: this.consumeState.uri,
+				trackType: this.consumeState.trackType,
+				seek: this.currentSeek,
+				duration: this.consumeState.duration,
+				samplerate: this.consumeState.samplerate,
+				bitdepth: this.consumeState.bitdepth,
+				channels: this.consumeState.channels,
 				bitrate: this.consumeState.bitrate,
-                random: this.currentRandom,
-                repeat: this.currentRepeat,
-                repeatSingle: this.currentRepeatSingleSong,
-                consume: true,
-                volume: this.currentVolume,
-                mute: this.currentMute,
-                disableVolumeControl: this.currentDisableVolumeControl,
-                stream: this.consumeState.stream,
-                updatedb: this.currentUpdate,
-                volatile: false,
-                trackType: this.consumeState.trackType,
-                service: this.consumeState.service
-            };
-        }
-        else
-        {
-            return this.getEmptyState();
-        }
-    }
-    else
-    {
-        var trackBlock = this.getTrack(this.currentPosition);
-        if(trackBlock===undefined )
-        {
-            return this.getEmptyState();
-        }
-        else {
-            if (trackBlock.service === 'webradio') {
-                trackBlock.trackType = 'webradio';
-                trackBlock.bitdepth = '';
-                trackBlock.samplerate = '';
-            }
-            return {
-                status: this.currentStatus,
-                position: this.currentPosition,
-                title: trackBlock.name,
-                artist: trackBlock.artist,
-                album: trackBlock.album,
-                albumart: trackBlock.albumart,
-                uri: trackBlock.uri,
-                trackType: trackBlock.trackType,
-                seek: this.currentSeek,
-                duration: trackBlock.duration,
-                samplerate: trackBlock.samplerate,
-                bitdepth: trackBlock.bitdepth,
-                channels: trackBlock.channels,
-                random: this.currentRandom,
-                repeat: this.currentRepeat,
-                repeatSingle: this.currentRepeatSingleSong,
-                consume: this.currentConsume,
-                volume: this.currentVolume,
-                disableVolumeControl: this.currentDisableVolumeControl,
-                mute: this.currentMute,
-                stream: trackBlock.trackType,
-                updatedb: this.currentUpdate,
+				random: this.currentRandom,
+				repeat: this.currentRepeat,
+				repeatSingle: this.currentRepeatSingleSong,
+				consume: true,
+				volume: this.currentVolume,
+				mute: this.currentMute,
+				disableVolumeControl: this.currentDisableVolumeControl,
+				stream: this.consumeState.stream,
+				updatedb: this.currentUpdate,
 				volatile: false,
-                service: trackBlock.service
-            };
-        }
-    }
+				trackType: this.consumeState.trackType,
+				service: this.consumeState.service
+			};
+		}
+		else
+		{
+			return this.getEmptyState();
+		}
+	}
+	else
+	{
+		var trackBlock = this.getTrack(this.currentPosition);
+		if(trackBlock===undefined )
+		{
+			return this.getEmptyState();
+		}
+		else {
+			if (trackBlock.service === 'webradio') {
+				trackBlock.trackType = 'webradio';
+				trackBlock.bitdepth = '';
+				trackBlock.samplerate = '';
+			}
+			return {
+				status: this.currentStatus,
+				position: this.currentPosition,
+				title: trackBlock.name,
+				artist: trackBlock.artist,
+				album: trackBlock.album,
+				albumart: trackBlock.albumart,
+				uri: trackBlock.uri,
+				trackType: trackBlock.trackType,
+				seek: this.currentSeek,
+				duration: trackBlock.duration,
+				samplerate: trackBlock.samplerate,
+				bitdepth: trackBlock.bitdepth,
+				channels: trackBlock.channels,
+				random: this.currentRandom,
+				repeat: this.currentRepeat,
+				repeatSingle: this.currentRepeatSingleSong,
+				consume: this.currentConsume,
+				volume: this.currentVolume,
+				disableVolumeControl: this.currentDisableVolumeControl,
+				mute: this.currentMute,
+				stream: trackBlock.trackType,
+				updatedb: this.currentUpdate,
+				volatile: false,
+				service: trackBlock.service
+			};
+		}
+	}
 
 
 };
@@ -204,30 +204,30 @@ CoreStateMachine.prototype.getState = function () {
  * @returns the status
  */
 CoreStateMachine.prototype.getEmptyState = function () {
-    return {
-        status: 'stop',
-        position: 0,
-        title: '',
-        artist: '',
-        album: '',
-        albumart: '/albumart',
-        duration:0,
-        uri: '',
-        seek: 0,
-        samplerate: '',
-        channels: '',
-        bitdepth: '',
-        Streaming: false,
-        service: 'mpd',
-        volume: this.currentVolume,
-        mute: this.currentMute,
-        disableVolumeControl: this.currentDisableVolumeControl,
-        random:this.currentRandom,
-        repeat: this.currentRepeat,
-        repeatSingle: this.currentRepeatSingleSong,
-        updatedb: this.currentUpdate,
-        consume: this.currentConsume
-    };
+	return {
+		status: 'stop',
+		position: 0,
+		title: '',
+		artist: '',
+		album: '',
+		albumart: '/albumart',
+		duration:0,
+		uri: '',
+		seek: 0,
+		samplerate: '',
+		channels: '',
+		bitdepth: '',
+		Streaming: false,
+		service: 'mpd',
+		volume: this.currentVolume,
+		mute: this.currentMute,
+		disableVolumeControl: this.currentDisableVolumeControl,
+		random:this.currentRandom,
+		repeat: this.currentRepeat,
+		repeatSingle: this.currentRepeatSingleSong,
+		updatedb: this.currentUpdate,
+		consume: this.currentConsume
+	};
 }
 
 
@@ -404,34 +404,34 @@ CoreStateMachine.prototype.stopPlaybackTimer = function () {
 
 
 CoreStateMachine.prototype.getNextIndex = function () {
-    var nextIndex=this.currentPosition+1;
+	var nextIndex=this.currentPosition+1;
 
-    var isLastTrack=(this.playQueue.arrayQueue.length-1)==this.currentPosition;
+	var isLastTrack=(this.playQueue.arrayQueue.length-1)==this.currentPosition;
 
-    // Check if Repeat mode is on and last track is played, note that Random and Consume overides Repeat
-    if(this.currentRepeat)
-    {
-        if(this.currentRepeatSingleSong) {
-            nextIndex=this.currentPosition;
-        } else if (isLastTrack) {
-            nextIndex=0;
-        }
+	// Check if Repeat mode is on and last track is played, note that Random and Consume overides Repeat
+	if(this.currentRepeat)
+	{
+		if(this.currentRepeatSingleSong) {
+			nextIndex=this.currentPosition;
+		} else if (isLastTrack) {
+			nextIndex=0;
+		}
 
-    }
+	}
 
-    if(isLastTrack && this.currentConsume)
-    {
-        nextIndex=0;
-    }
+	if(isLastTrack && this.currentConsume)
+	{
+		nextIndex=0;
+	}
 
-    // Then check if Random mode is on - Random mode overrides Repeat mode by this
-    if(this.currentRandom)
-    {
+	// Then check if Random mode is on - Random mode overrides Repeat mode by this
+	if(this.currentRandom)
+	{
 		nextIndex = this.randomQueue.next();
-        this.nextRandomIndex=nextIndex;
-    }
+		this.nextRandomIndex=nextIndex;
+	}
 
-    return nextIndex;
+	return nextIndex;
 };
 
 
@@ -460,12 +460,12 @@ CoreStateMachine.prototype.increasePlaybackTimer = function () {
 
 			var trackBlock = this.getTrack(this.currentPosition);
 
-            var nextIndex=this.getNextIndex();
+			var nextIndex=this.getNextIndex();
 
-            var nextTrackBlock = this.getTrack(nextIndex);
+			var nextTrackBlock = this.getTrack(nextIndex);
 			if(nextTrackBlock!==undefined && nextTrackBlock!==null && nextTrackBlock.service==trackBlock.service)
 			{
-                this.commandRouter.pushConsoleMessage("Prefetching next song");
+				this.commandRouter.pushConsoleMessage("Prefetching next song");
 
 				var plugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
 				if(plugin && typeof(plugin.prefetch) === typeof(Function))
@@ -484,23 +484,23 @@ CoreStateMachine.prototype.increasePlaybackTimer = function () {
 
 
 			if(this.currentRandom)
-            {
-                this.currentPosition=this.nextRandomIndex;
-            }
-            else
-            {
-                this.currentPosition=this.getNextIndex();
-            }
+			{
+				this.currentPosition=this.nextRandomIndex;
+			}
+			else
+			{
+				this.currentPosition=this.getNextIndex();
+			}
 
 			this.nextRandomIndex=undefined;
 
-            this.askedForPrefetch=false;
+			this.askedForPrefetch=false;
 			this.pushState.bind(this);
 
 			this.startPlaybackTimer();
 
 		} else {
-            setTimeout(this.increasePlaybackTimer.bind(this),250);
+			setTimeout(this.increasePlaybackTimer.bind(this),250);
 		}
 	}
 };
@@ -519,14 +519,14 @@ CoreStateMachine.prototype.updateVolume = function (Volume) {
 
 //Gets current Volume and Mute Status
 CoreStateMachine.prototype.getcurrentVolume = function () {
-    var self = this;
+	var self = this;
 	this.commandRouter.pushConsoleMessage('CoreStateMachine::getcurrentVolume');
 	this.commandRouter.volumioretrievevolume().then((volumeData)=>{
-    	self.currentVolume = volumeData.vol;
-    	self.currentMute = volumeData.mute;
-    	self.currentDisableVolumeControl = volumeData.disableVolumeControl;
-    	this.updateTrackBlock();
-    	self.commandRouter.volumioretrievevolume();
+		self.currentVolume = volumeData.vol;
+		self.currentMute = volumeData.mute;
+		self.currentDisableVolumeControl = volumeData.disableVolumeControl;
+		this.updateTrackBlock();
+		self.commandRouter.volumioretrievevolume();
 	})
 
 	return libQ.resolve();
@@ -585,60 +585,60 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 	var  self = this;
 	this.commandRouter.pushDebugConsoleMessage('CoreStateMachine::syncState');
 
-  //Checking if stateService is defined (REPLACE WITH CONDITIONAL LIBRARY AS SOON AS POSSIBLE)
-  if(!stateService)
-  {
-    this.commandRouter.pushErrorConsoleMessage('variable stateService in CoreStateMachine::syncState is undefined');
-  }
+	//Checking if stateService is defined (REPLACE WITH CONDITIONAL LIBRARY AS SOON AS POSSIBLE)
+	if(!stateService)
+	{
+		this.commandRouter.pushErrorConsoleMessage('variable stateService in CoreStateMachine::syncState is undefined');
+	}
 
 
-  if (this.isVolatile && (stateService.status == 'play' || stateService.status == 'pause')) {
-    this.volatileService = sService;
-    this.currentStatus=stateService.status;
-    this.volatileState=stateService;
-    this.pushState().fail(this.pushError.bind(this));
-    return;
+	if (this.isVolatile && (stateService.status == 'play' || stateService.status == 'pause')) {
+		this.volatileService = sService;
+		this.currentStatus=stateService.status;
+		this.volatileState=stateService;
+		this.pushState().fail(this.pushError.bind(this));
+		return;
 	} else if (this.volatileState && stateService.status == 'stop'){
-    this.volatileService = undefined;
-      this.pushState().fail(this.pushError.bind(this));
-    //this.currentStatus='stop';
+		this.volatileService = undefined;
+		this.pushState().fail(this.pushError.bind(this));
+		//this.currentStatus='stop';
 		var trackBlock = this.getTrack(this.currentPosition);
 	} else if (this.isUpnp){
 		console.log('In UPNP mode')
 
-  } else {
-    this.volatileService = undefined;
+	} else {
+		this.volatileService = undefined;
 
-    // On slow devices, nodejs might update mpd before the scheduled setTimeout ends.
-    // To handle this, make a direct call to increasePlaybackTimer to force another mpd update.
-    // Sometimes the mpd update occurs more than 500ms before the end of the scheduled setTimeout.              
-    // Setting currentSeek = currentSongDuration ensures a setTimeout increase of no more than 500ms.
-	if (this.askedForPrefetch)
-	{
-		// Debug if the workaround is applicable
-		this.commandRouter.pushDebugConsoleMessage('ERROR Prefetch 500ms setTimeout missed >> directly calling increasePlaybackTimer');
-		this.commandRouter.pushDebugConsoleMessage("ERROR this.runPlaybackTimer:" + this.runPlaybackTimer + " this.currentSongDuration:" + this.currentSongDuration + " - this.currentSeek:" + this.currentSeek + " - this.prefetchDone:"+this.prefetchDone+ " - this.simulateStopStartDone:"+this.simulateStopStartDone);
+		// On slow devices, nodejs might update mpd before the scheduled setTimeout ends.
+		// To handle this, make a direct call to increasePlaybackTimer to force another mpd update.
+		// Sometimes the mpd update occurs more than 500ms before the end of the scheduled setTimeout.
+		// Setting currentSeek = currentSongDuration ensures a setTimeout increase of no more than 500ms.
+		if (this.askedForPrefetch)
+		{
+			// Debug if the workaround is applicable
+			this.commandRouter.pushDebugConsoleMessage('ERROR Prefetch 500ms setTimeout missed >> directly calling increasePlaybackTimer');
+			this.commandRouter.pushDebugConsoleMessage("ERROR this.runPlaybackTimer:" + this.runPlaybackTimer + " this.currentSongDuration:" + this.currentSongDuration + " - this.currentSeek:" + this.currentSeek + " - this.prefetchDone:"+this.prefetchDone+ " - this.simulateStopStartDone:"+this.simulateStopStartDone);
 
-		this.currentSeek = this.currentSongDuration;
-		this.increasePlaybackTimer();
+			this.currentSeek = this.currentSongDuration;
+			this.increasePlaybackTimer();
+		}
+
+		var trackBlock = this.getTrack(this.currentPosition);
 	}
-  
-    var trackBlock = this.getTrack(this.currentPosition);
-	}
 
-    /**
-     *
-     *
-     *
-     */
+	/**
+	 *
+	 *
+	 *
+	 */
 	if(this.consumeUpdateService){
 		if(this.consumeUpdateService!=sService) {
 			this.commandRouter.pushConsoleMessage('CONSUME SERVICE: Received update from a service different from the one supposed to be playing music. Skipping notification. Current '+this.consumeUpdateService+" Received "+sService);
 			if (this.consumeUpdateService == 'upnp') {
-        		this.consumeUpdateService = 'mpd';
-        		sService = 'mpd';
+				this.consumeUpdateService = 'mpd';
+				sService = 'mpd';
 			} else {
-        		return;
+				return;
 			}
 		}
 	} else {
@@ -648,8 +648,8 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 		}
 	}
 	this.timeLastServiceStateUpdate = Date.now();
-  this.commandRouter.pushDebugConsoleMessage("STATE SERVICE "+JSON.stringify(stateService));
-  this.commandRouter.pushDebugConsoleMessage("CURRENT POSITION "+this.currentPosition);
+	this.commandRouter.pushDebugConsoleMessage("STATE SERVICE "+JSON.stringify(stateService));
+	this.commandRouter.pushDebugConsoleMessage("CURRENT POSITION "+this.currentPosition);
 
 	if (stateService.isStreaming != undefined) {
 		this.isStreaming = stateService.isStreaming;
@@ -673,20 +673,20 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 
 			// Checking if system is in consume mode. If it is the status shall be stored
 			if(this.isConsume && stateService)
-      {
-        var consumeAlbum=stateService.album;
-        var consumeArtist=stateService.artist;
-        var consumeAlbumArt='/albumart';
+			{
+				var consumeAlbum=stateService.album;
+				var consumeArtist=stateService.artist;
+				var consumeAlbumArt='/albumart';
 				if(trackBlock != undefined && typeof trackBlock.albumart !== "undefined" && trackBlock.albumart != "" && trackBlock.albumart != "/albumart"){
 					consumeAlbumArt = trackBlock.albumart;
 				}else if(consumeArtist)
-        {
-          consumeAlbumArt=this.commandRouter.executeOnPlugin('miscellanea','albumart','getAlbumArt',
-	        {
-            artist:consumeArtist,
-            album:consumeAlbum
-	        });
-        }
+				{
+					consumeAlbumArt=this.commandRouter.executeOnPlugin('miscellanea','albumart','getAlbumArt',
+						{
+							artist:consumeArtist,
+							album:consumeAlbum
+						});
+				}
 				if (stateService.service == undefined ) {
 					stateService.service = 'mpd';
 				}
@@ -717,7 +717,7 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 						samplerate:sRate,
 						bitdepth:bDepth,
 						channels:stateService.channels,
-                        bitrate:stateService.bitrate,
+						bitrate:stateService.bitrate,
 						stream:stateService.isStreaming
 					};
 				} else {
@@ -735,67 +735,67 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 						samplerate:stateService.samplerate,
 						bitdepth:stateService.bitdepth,
 						channels:stateService.channels,
-                        bitrate:stateService.bitrate,
+						bitrate:stateService.bitrate,
 						stream:stateService.isStreaming,
 						service:stateService.service
 					};
 
 				}
 
-            }
+			}
 			else
-            {
-                //checking if prefetch has been done. In that case the update is sent elsewhere
-                if(this.askedForPrefetch==false) {
+			{
+				//checking if prefetch has been done. In that case the update is sent elsewhere
+				if(this.askedForPrefetch==false) {
 
 
-                    if (stateService.seek !== undefined) {
-                        this.currentSeek = stateService.seek;
-                    }
+					if (stateService.seek !== undefined) {
+						this.currentSeek = stateService.seek;
+					}
 
-                    if(trackBlock!==undefined)
-                    {
-                        if (stateService.duration !== undefined) {
-                            trackBlock.duration = stateService.duration;
-                        }
+					if(trackBlock!==undefined)
+					{
+						if (stateService.duration !== undefined) {
+							trackBlock.duration = stateService.duration;
+						}
 
-                        if (stateService.samplerate !== undefined && trackBlock.samplerate === undefined) {
-                            trackBlock.samplerate = stateService.samplerate;
-                        }
+						if (stateService.samplerate !== undefined && trackBlock.samplerate === undefined) {
+							trackBlock.samplerate = stateService.samplerate;
+						}
 
-                        if (stateService.bitdepth !== undefined && trackBlock.bitdepth === undefined) {
-                            trackBlock.bitdepth = stateService.bitdepth;
-                        }
+						if (stateService.bitdepth !== undefined && trackBlock.bitdepth === undefined) {
+							trackBlock.bitdepth = stateService.bitdepth;
+						}
 
-                        if (stateService.channels !== undefined && trackBlock.channels === undefined) {
-                            trackBlock.channels = stateService.channels;
-                        }
+						if (stateService.channels !== undefined && trackBlock.channels === undefined) {
+							trackBlock.channels = stateService.channels;
+						}
 
-                        if (stateService.title !== undefined)
-                        {
-                            if(trackBlock.service==='webradio'  || trackBlock.name === undefined)
-                                trackBlock.name = stateService.title;
+						if (stateService.title !== undefined)
+						{
+							if(trackBlock.service==='webradio'  || trackBlock.name === undefined)
+								trackBlock.name = stateService.title;
 
-                        }
+						}
 
-                        if (stateService.artist !== undefined && trackBlock.artist === undefined) {
-                            trackBlock.artist = stateService.artist;
-                        }
+						if (stateService.artist !== undefined && trackBlock.artist === undefined) {
+							trackBlock.artist = stateService.artist;
+						}
 
-                        if (stateService.album !== undefined && trackBlock.album === undefined) {
-                            trackBlock.album = stateService.album;
-                        }
+						if (stateService.album !== undefined && trackBlock.album === undefined) {
+							trackBlock.album = stateService.album;
+						}
 
-                        if (stateService.albumart !== undefined && trackBlock.albumart === undefined) {
-                            trackBlock.albumart = stateService.albumart;
-                        }
-                    }
-                }
-            }
+						if (stateService.albumart !== undefined && trackBlock.albumart === undefined) {
+							trackBlock.albumart = stateService.albumart;
+						}
+					}
+				}
+			}
 
 
-            this.currentStatus='play';
-            this.pushState().fail(this.pushError.bind(this));
+			this.currentStatus='play';
+			this.pushState().fail(this.pushError.bind(this));
 		}
 		else if (this.currentStatus === 'stop') {
 
@@ -828,11 +828,11 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 		}
 		else if (this.currentStatus === 'pause') {
 			this.currentStatus='play';
-            if(this.isConsume)
-            {
-                this.consumeState.status='play';
-                this.consumeState.seek=this.currentSeek
-            }
+			if(this.isConsume)
+			{
+				this.consumeState.status='play';
+				this.consumeState.seek=this.currentSeek
+			}
 			this.pushState().fail(this.pushError.bind(this));
 		}
 
@@ -853,12 +853,12 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 			this.currentBitDepth = null;
 			this.currentChannels = null;
 
-            this.commandRouter.pushDebugConsoleMessage("CURRENT POSITION "+this.currentPosition);
+			this.commandRouter.pushDebugConsoleMessage("CURRENT POSITION "+this.currentPosition);
 
 
-           // console.log("RANDOM: "+this.currentRandom+ ' OBJ '+JSON.stringify(trackBlock));
+			// console.log("RANDOM: "+this.currentRandom+ ' OBJ '+JSON.stringify(trackBlock));
 
-            if(trackBlock!==undefined && trackBlock.service!=='webradio')
+			if(trackBlock!==undefined && trackBlock.service!=='webradio')
 			{
 				if(this.currentConsume!==undefined && this.currentConsume==true)
 				{
@@ -866,18 +866,18 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 				}
 				else
 				{
-                    if(this.currentRandom!==undefined && this.currentRandom===true)
+					if(this.currentRandom!==undefined && this.currentRandom===true)
 					{
-                        var nextSongIndex=0;
+						var nextSongIndex=0;
 
 
-                        /**
-                         * Using nextRandomIndex because prefetch may have picked one sone randomly
-                         * from another service (thus not prefetched). This way we use the same index
-                         */
-                        if(this.nextRandomIndex)
-                            this.currentPosition=this.nextRandomIndex;
-                        else
+						/**
+						 * Using nextRandomIndex because prefetch may have picked one sone randomly
+						 * from another service (thus not prefetched). This way we use the same index
+						 */
+						if(this.nextRandomIndex)
+							this.currentPosition=this.nextRandomIndex;
+						else
 							this.currentPosition = this.randomQueue.next();
 					}
 					else {
@@ -889,122 +889,122 @@ CoreStateMachine.prototype.syncState = function (stateService, sService) {
 			}
 
 
-            this.commandRouter.pushDebugConsoleMessage("CURRENT POSITION "+this.currentPosition);
+			this.commandRouter.pushDebugConsoleMessage("CURRENT POSITION "+this.currentPosition);
 
 			this.currentStatus = 'stop';
-            if(this.isConsume)
-            {
-                this.consumeState.status='stop';
-                this.consumeState.seek=0
-            }
+			if(this.isConsume)
+			{
+				this.consumeState.status='stop';
+				this.consumeState.seek=0
+			}
 
 			//Checking repeat status
-            if(this.currentRepeat && this.currentRepeatSingleSong)
-            {
-                if(this.prefetchDone==false)
-                {
-                    this.play(this.currentPosition)
-                        .then(self.pushState.bind(self))
-                        .fail(this.pushError.bind(this));
+			if(this.currentRepeat && this.currentRepeatSingleSong)
+			{
+				if(this.prefetchDone==false)
+				{
+					this.play(this.currentPosition)
+						.then(self.pushState.bind(self))
+						.fail(this.pushError.bind(this));
 
-                    this.askedForPrefetch=false;
-                    this.simulateStopStartDone=false;
-                }
-                else
-                {
-                    this.prefetchDone=false;
-                    this.askedForPrefetch=false;
-                    this.simulateStopStartDone=false;
+					this.askedForPrefetch=false;
+					this.simulateStopStartDone=false;
+				}
+				else
+				{
+					this.prefetchDone=false;
+					this.askedForPrefetch=false;
+					this.simulateStopStartDone=false;
 
-                    this.commandRouter.pushDebugConsoleMessage("Prefetch done, skipping queuing");
-                }
-            }
-            else
-            {
-                if (this.currentPosition >= this.playQueue.arrayQueue.length) {
-                    this.commandRouter.pushDebugConsoleMessage("END OF QUEUE ");
+					this.commandRouter.pushDebugConsoleMessage("Prefetch done, skipping queuing");
+				}
+			}
+			else
+			{
+				if (this.currentPosition >= this.playQueue.arrayQueue.length) {
+					this.commandRouter.pushDebugConsoleMessage("END OF QUEUE ");
 
-                    //Queuing following track;
-                    if(this.currentRepeat!==undefined && this.currentRepeat===true)
-                    {
-                        this.currentPosition=0;
+					//Queuing following track;
+					if(this.currentRepeat!==undefined && this.currentRepeat===true)
+					{
+						this.currentPosition=0;
 
-                        if(this.prefetchDone==false)
-                        {
-                            this.play()
-                                .then(self.pushState.bind(self))
-                                .fail(this.pushError.bind(this));
+						if(this.prefetchDone==false)
+						{
+							this.play()
+								.then(self.pushState.bind(self))
+								.fail(this.pushError.bind(this));
 
-                            this.askedForPrefetch=false;
-                            this.simulateStopStartDone=false;
-                        }
-                        else
-                        {
-                            this.prefetchDone=false;
-                            this.askedForPrefetch=false;
-                            this.simulateStopStartDone=false;
+							this.askedForPrefetch=false;
+							this.simulateStopStartDone=false;
+						}
+						else
+						{
+							this.prefetchDone=false;
+							this.askedForPrefetch=false;
+							this.simulateStopStartDone=false;
 
-                            this.commandRouter.pushDebugConsoleMessage("Prefetch done, skipping queuing");
-                        }
-
-
-                        this.commandRouter.pushDebugConsoleMessage("Repeating playlist ");
-                    }
-                    else
-                    {
-                        this.currentPosition=0;
-                        this.pushEmptyState().fail(this.pushError.bind(this));
-
-                        return this.stopPlaybackTimer();
-                    }
+							this.commandRouter.pushDebugConsoleMessage("Prefetch done, skipping queuing");
+						}
 
 
+						this.commandRouter.pushDebugConsoleMessage("Repeating playlist ");
+					}
+					else
+					{
+						this.currentPosition=0;
+						this.pushEmptyState().fail(this.pushError.bind(this));
 
-                } else {
-                    if(this.prefetchDone==false)
-                    {
-                        this.play()
-                            .then(self.pushState.bind(self))
-                            .fail(this.pushError.bind(this));
+						return this.stopPlaybackTimer();
+					}
 
-                        this.askedForPrefetch=false;
-                        this.simulateStopStartDone=false;
-                    }
-                    else
-                    {
-                        this.prefetchDone=false;
-                        this.askedForPrefetch=false;
-                        this.simulateStopStartDone=false;
-                        this.pushState();
-                        this.commandRouter.pushDebugConsoleMessage("Prefetch done, skipping queuing");
-                    }
-                }
-            }
+
+
+				} else {
+					if(this.prefetchDone==false)
+					{
+						this.play()
+							.then(self.pushState.bind(self))
+							.fail(this.pushError.bind(this));
+
+						this.askedForPrefetch=false;
+						this.simulateStopStartDone=false;
+					}
+					else
+					{
+						this.prefetchDone=false;
+						this.askedForPrefetch=false;
+						this.simulateStopStartDone=false;
+						this.pushState();
+						this.commandRouter.pushDebugConsoleMessage("Prefetch done, skipping queuing");
+					}
+				}
+			}
 
 		} else if (this.currentStatus === 'stop') {
 			this.pushState().fail(this.pushError.bind(this));
 			this.commandRouter.pushConsoleMessage('No code');
 		}
 	} else if (stateService.status === 'pause') {
-        /**
-         * TODO: check if the section can be collapsed
-         */
+		/**
+		 * TODO: check if the section can be collapsed
+		 */
 
-        if (this.currentStatus === 'play') {
-            if(this.isConsume)
-            {
-                this.consumeState.status='pause';
-                this.pushState().fail(this.pushError.bind(this));
+		if (this.currentStatus === 'play') {
+			if(this.isConsume)
+			{
+				this.consumeState.status='pause';
+				this.pushState().fail(this.pushError.bind(this));
 
-                return this.stopPlaybackTimer();
-            }
-        }
-	    else if (this.currentStatus === 'pause') {
-            if(this.isConsume)
-            {
-                this.consumeState.status='pause';
-                this.consumeState.seek=this.currentSeek
-            }
+				return this.stopPlaybackTimer();
+			}
+		}
+		else if (this.currentStatus === 'pause') {
+			if(this.isConsume)
+			{
+				this.consumeState.status='pause';
+				this.consumeState.seek=this.currentSeek
+			}
 
 			this.pushState().fail(this.pushError.bind(this));
 
@@ -1035,17 +1035,17 @@ CoreStateMachine.prototype.checkFavourites = function (state) {
 		return this.emitFavourites(response);
 
 	return this.commandRouter.playListManager.listFavourites()
-			.then(function (favList) {
-				/**
-				 * WARNING: The favourites section uses music-library/ to start each uri
-				 * This is not used in mpd uris, so we are adding it at the beginning of each uri
-				 */
-				var match = self.sanitizeUri(state.uri);
-				if(favList.navigation.lists[0].items.some(fav => self.sanitizeUri(fav.uri) === match)) {
-					response.favourite = true;
-				}
-				return self.emitFavourites(response);
-			});
+		.then(function (favList) {
+			/**
+			 * WARNING: The favourites section uses music-library/ to start each uri
+			 * This is not used in mpd uris, so we are adding it at the beginning of each uri
+			 */
+			var match = self.sanitizeUri(state.uri);
+			if(favList.navigation.lists[0].items.some(fav => self.sanitizeUri(fav.uri) === match)) {
+				response.favourite = true;
+			}
+			return self.emitFavourites(response);
+		});
 };
 
 
@@ -1078,13 +1078,14 @@ CoreStateMachine.prototype.play = function (index) {
 		{
 			if(self.currentPosition ==null || self.currentPosition===undefined)
 			{
-                self.commandRouter.pushDebugConsoleMessage("CURRENT POSITION NOT SET, RESETTING TO 0");
+				self.commandRouter.pushDebugConsoleMessage("CURRENT POSITION NOT SET, RESETTING TO 0");
 				self.currentPosition=0;
 			}
 
 			if (self.currentRandom!==undefined && self.currentRandom===true) {
 				self.randomQueue.modifyQueueLength(index);
 			}
+
 
 			if(index!==undefined)
 			{
@@ -1108,35 +1109,27 @@ CoreStateMachine.prototype.play = function (index) {
 
 				var thisPlugin = self.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
 
-				if (self.currentStatus==='stop') {
+				if(self.currentStatus==='stop')
+				{
 					//queuing
 					self.currentSeek=0;
 					self.startPlaybackTimer();
 
 					if (typeof thisPlugin.clearAddPlayTrack === "function") {
-                        thisPlugin.clearAddPlayTrack(trackBlock);
-                    } else {
-                        this.commandRouter.pushConsoleMessage('WARNING: No clearAddPlayTrack method for plugin ' + trackBlock.service);
-                    }
+						thisPlugin.clearAddPlayTrack(trackBlock);
+					} else {
+						this.commandRouter.pushConsoleMessage('WARNING: No clearAddPlayTrack method for plugin ' + trackBlock.service);
+					}
+
 				}
 				else  if(self.currentStatus==='pause')
 				{
 					self.startPlaybackTimer();
 
 					if (typeof thisPlugin.resume === "function") {
-                        thisPlugin.resume();
-                    } else {
-                        this.commandRouter.pushConsoleMessage('WARNING: No resume method for plugin ' + trackBlock.service);
-                    }
-				} else if (self.currentStatus === 'next') {
-					self.currentStatus = 'stop'; // restore changed state
-					self.currentSeek=0;
-					self.startPlaybackTimer();
-
-					if (typeof thisPlugin.addAndNext === "function") {
-						thisPlugin.addAndNext(trackBlock);
+						thisPlugin.resume();
 					} else {
-						this.commandRouter.pushConsoleMessage('WARNING: No addAndNext method for plugin ' + trackBlock.service);
+						this.commandRouter.pushConsoleMessage('WARNING: No resume method for plugin ' + trackBlock.service);
 					}
 				}
 
@@ -1149,18 +1142,18 @@ CoreStateMachine.prototype.play = function (index) {
 
 // Volumio Volatile Play
 CoreStateMachine.prototype.volatilePlay = function () {
-    var self=this;
-    this.commandRouter.pushConsoleMessage('CoreStateMachine::volatilePlay');
+	var self=this;
+	this.commandRouter.pushConsoleMessage('CoreStateMachine::volatilePlay');
 
-    if(this.isVolatile){
-        var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-        if (thisPlugin && typeof thisPlugin.play === "function") {
-            thisPlugin.play();
-        } else {
-            this.commandRouter.pushConsoleMessage('WARNING: No play method for volatile plugin ' + this.volatileService);
-        }
-    } else {
-        this.commandRouter.pushConsoleMessage('WARNING: Received volatile play command but volumio is not on volatile state');
+	if(this.isVolatile){
+		var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+		if (thisPlugin && typeof thisPlugin.play === "function") {
+			thisPlugin.play();
+		} else {
+			this.commandRouter.pushConsoleMessage('WARNING: No play method for volatile plugin ' + this.volatileService);
+		}
+	} else {
+		this.commandRouter.pushConsoleMessage('WARNING: Received volatile play command but volumio is not on volatile state');
 	}
 }
 
@@ -1176,11 +1169,11 @@ CoreStateMachine.prototype.seek = function (position) {
 			var curPos = this.getState().seek;
 			var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
 			this.currentSeek = curPos + 10000;
-            if (thisPlugin && typeof thisPlugin.seek === "function") {
-                thisPlugin.seek(curPos + 10000);
-            } else {
-                this.commandRouter.pushConsoleMessage('WARNING: No seek method for volatile plugin ' + this.volatileService);
-            }
+			if (thisPlugin && typeof thisPlugin.seek === "function") {
+				thisPlugin.seek(curPos + 10000);
+			} else {
+				this.commandRouter.pushConsoleMessage('WARNING: No seek method for volatile plugin ' + this.volatileService);
+			}
 			this.startPlaybackTimer(curPos + 10000);
 			this.pushState().fail(this.pushError.bind(this));
 
@@ -1188,20 +1181,20 @@ CoreStateMachine.prototype.seek = function (position) {
 			var curPos = this.getState().seek;
 			var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
 			this.currentSeek = curPos - 10000;
-            if (thisPlugin && typeof thisPlugin.seek === "function") {
-                thisPlugin.seek(curPos - 10000);
-            } else {
-                this.commandRouter.pushConsoleMessage('WARNING: No seek method for volatile plugin ' + this.volatileService);
-            }
+			if (thisPlugin && typeof thisPlugin.seek === "function") {
+				thisPlugin.seek(curPos - 10000);
+			} else {
+				this.commandRouter.pushConsoleMessage('WARNING: No seek method for volatile plugin ' + this.volatileService);
+			}
 			this.startPlaybackTimer(curPos - 10000);
 			this.pushState().fail(this.pushError.bind(this));
 		}else{
 			var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-            if (thisPlugin && typeof thisPlugin.seek === "function") {
-                thisPlugin.seek(position * 1000);
-            } else {
-                this.commandRouter.pushConsoleMessage('WARNING: No seek method for volatile plugin ' + this.volatileService);
-            }
+			if (thisPlugin && typeof thisPlugin.seek === "function") {
+				thisPlugin.seek(position * 1000);
+			} else {
+				this.commandRouter.pushConsoleMessage('WARNING: No seek method for volatile plugin ' + this.volatileService);
+			}
 			this.currentSeek = position * 1000;
 			this.startPlaybackTimer(position * 1000);
 			this.pushState().fail(this.pushError.bind(this));
@@ -1213,46 +1206,46 @@ CoreStateMachine.prototype.seek = function (position) {
 		{
 			if(position == '+'){
 				var curPos = this.getState().seek;
-        var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+				var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
 
-        this.currentSeek = curPos + 10000;
-        this.startPlaybackTimer(curPos + 10000);
-        if (thisPlugin && typeof thisPlugin.seek === "function") {
-            thisPlugin.seek(curPos + 10000);
-        } else {
-        	this.commandRouter.pushConsoleMessage('WARNING: No seek method for plugin ' + trackBlock.service);
-		}
+				this.currentSeek = curPos + 10000;
+				this.startPlaybackTimer(curPos + 10000);
+				if (thisPlugin && typeof thisPlugin.seek === "function") {
+					thisPlugin.seek(curPos + 10000);
+				} else {
+					this.commandRouter.pushConsoleMessage('WARNING: No seek method for plugin ' + trackBlock.service);
+				}
 
 
-        this.pushState().fail(this.pushError.bind(this));
+				this.pushState().fail(this.pushError.bind(this));
 			}
 			else if(position == '-'){
-  	    var curPos = this.getState().seek;
-        var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+				var curPos = this.getState().seek;
+				var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
 
-      	this.currentSeek = curPos - 10000;
-  	    this.startPlaybackTimer(curPos - 10000);
-  	    if (thisPlugin && typeof thisPlugin.seek === "function") {
-			thisPlugin.seek(curPos - 10000);
-		} else {
-			this.commandRouter.pushConsoleMessage('WARNING: No seek method for plugin ' + trackBlock.service);
-		}
+				this.currentSeek = curPos - 10000;
+				this.startPlaybackTimer(curPos - 10000);
+				if (thisPlugin && typeof thisPlugin.seek === "function") {
+					thisPlugin.seek(curPos - 10000);
+				} else {
+					this.commandRouter.pushConsoleMessage('WARNING: No seek method for plugin ' + trackBlock.service);
+				}
 
-      	this.pushState().fail(this.pushError.bind(this));
-	    	}
+				this.pushState().fail(this.pushError.bind(this));
+			}
 			else{
-        this.commandRouter.pushConsoleMessage('TRACKBLOCK ' + JSON.stringify(trackBlock));
+				this.commandRouter.pushConsoleMessage('TRACKBLOCK ' + JSON.stringify(trackBlock));
 
-        var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+				var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
 
-        this.currentSeek = position*1000;
-        this.startPlaybackTimer(position*1000);
-        if (thisPlugin && typeof thisPlugin.seek === "function") {
-			thisPlugin.seek(position*1000);
-		} else {
-			this.commandRouter.pushConsoleMessage('WARNING: No seek method for plugin ' + trackBlock.service);
-		}
-        this.pushState().fail(this.pushError.bind(this));
+				this.currentSeek = position*1000;
+				this.startPlaybackTimer(position*1000);
+				if (thisPlugin && typeof thisPlugin.seek === "function") {
+					thisPlugin.seek(position*1000);
+				} else {
+					this.commandRouter.pushConsoleMessage('WARNING: No seek method for plugin ' + trackBlock.service);
+				}
+				this.pushState().fail(this.pushError.bind(this));
 			}
 		}
 	}
@@ -1264,52 +1257,42 @@ CoreStateMachine.prototype.next = function (promisedResponse) {
 	this.commandRouter.pushConsoleMessage('CoreStateMachine::next');
 
 	if(this.isVolatile){
-        if (this.volatileService) {
-            var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-            if (volatilePlugin && typeof volatilePlugin.next === "function") {
-                volatilePlugin.next();
-            } else {
-                this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.volatileService);
-            }
-        } else {
-            this.commandRouter.pushConsoleMessage('WARNING: Cannot execute Action because no volatile plugin is defined');
-        }
+		if (this.volatileService) {
+			var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+			if (volatilePlugin && typeof volatilePlugin.next === "function") {
+				volatilePlugin.next();
+			} else {
+				this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.volatileService);
+			}
+		} else {
+			this.commandRouter.pushConsoleMessage('WARNING: Cannot execute Action because no volatile plugin is defined');
+		}
 	} else {
 		//self.setConsumeUpdateService(undefined);
-		if (this.isConsume && this.consumeState.service != undefined && this.consumeState.service !== 'webradio') { 
+		if (this.isConsume && this.consumeState.service != undefined && this.consumeState.service !== 'webradio') {
 			var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.consumeState.service);
-            if (typeof thisPlugin.next === "function") {
-                thisPlugin.next();
-            } else {
-                this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.consumeState.service);
-            }
+			if (typeof thisPlugin.next === "function") {
+				thisPlugin.next();
+			} else {
+				this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.consumeState.service);
+			}
 
 		} else if (this.isUpnp){
 			console.log('UPNP Next');
 		} else {
-			return this.stop()
-                .then(function()
-                {
-                    self.currentPosition = self.getNextIndex();
 
-                    //return libQ.resolve();
-                })
-                .then(self.play.bind(self))
-                .then(self.updateTrackBlock.bind(self));
+			return this.stop()
+				.then(function()
+				{
+					self.currentPosition = self.getNextIndex();
+
+					//return libQ.resolve();
+				})
+				.then(self.play.bind(self))
+				.then(self.updateTrackBlock.bind(self));
 		}
 	}
 };
-
-CoreStateMachine.prototype.next2 = function (promisedResponse) {
-	var self=this;
-
-	self.currentSeek = 0;
-	self.stopPlaybackTimer();
-	self.currentStatus = 'next';
-	self.currentPosition = self.getNextIndex();
-	return self.play()
-		.then(self.updateTrackBlock.bind(self));
-}
 
 
 // Volumio Pause Command
@@ -1328,15 +1311,15 @@ CoreStateMachine.prototype.pause = function (promisedResponse) {
 
 CoreStateMachine.prototype.ffwdRew = function (millisecs) {
 
-    this.commandRouter.pushConsoleMessage('CoreStateMachine::ffwdRew');
+	this.commandRouter.pushConsoleMessage('CoreStateMachine::ffwdRew');
 
-    var trackBlock = this.getTrack(this.currentPosition);
+	var trackBlock = this.getTrack(this.currentPosition);
 
 
-    var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
-    if(thisPlugin && thisPlugin.ffwdRew)
-        return thisPlugin.ffwdRew(millisecs);
-    else libQ.resolve();
+	var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+	if(thisPlugin && thisPlugin.ffwdRew)
+		return thisPlugin.ffwdRew(millisecs);
+	else libQ.resolve();
 };
 
 
@@ -1348,9 +1331,9 @@ CoreStateMachine.prototype.servicePause = function () {
 	}else{
 		var trackBlock = this.getTrack(this.currentPosition);
 		if (trackBlock != undefined && trackBlock.service != undefined) {
-            return this.commandRouter.servicePause(trackBlock.service);
+			return this.commandRouter.servicePause(trackBlock.service);
 		} else {
-            this.commandRouter.pushConsoleMessage('Error: no service or no trackblock to pause');
+			this.commandRouter.pushConsoleMessage('Error: no service or no trackblock to pause');
 		}
 
 	}
@@ -1388,7 +1371,7 @@ CoreStateMachine.prototype.stop = function (promisedResponse) {
 			return this.serviceStop();
 		} else {
 			return libQ.resolve();
-        }
+		}
 	}
 };
 
@@ -1402,13 +1385,13 @@ CoreStateMachine.prototype.serviceStop = function () {
 		var trackBlock = this.getTrack(this.currentPosition);
 		if (trackBlock && trackBlock.service){
 			return this.commandRouter.serviceStop(trackBlock.service);
-            //} else if (this.isUpnp) {
-            // var mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
-            // return mpdPlugin.stop();
-        } else {
-            var mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
-            return mpdPlugin.stop();
-        }
+			//} else if (this.isUpnp) {
+			// var mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
+			// return mpdPlugin.stop();
+		} else {
+			var mpdPlugin = this.commandRouter.pluginManager.getPlugin('music_service', 'mpd');
+			return mpdPlugin.stop();
+		}
 	}
 };
 
@@ -1419,14 +1402,14 @@ CoreStateMachine.prototype.previous = function (promisedResponse) {
 
 	if(this.isVolatile){
 		if (this.volatileService) {
-            var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-            if (volatilePlugin && typeof volatilePlugin.previous === "function") {
-                volatilePlugin.previous();
-            } else {
-                this.commandRouter.pushConsoleMessage('WARNING: No previous method for plugin ' + this.volatileService);
-            }
+			var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+			if (volatilePlugin && typeof volatilePlugin.previous === "function") {
+				volatilePlugin.previous();
+			} else {
+				this.commandRouter.pushConsoleMessage('WARNING: No previous method for plugin ' + this.volatileService);
+			}
 		} else {
-            this.commandRouter.pushConsoleMessage('WARNING: Cannot execute Action because no volatile plugin is defined');
+			this.commandRouter.pushConsoleMessage('WARNING: Cannot execute Action because no volatile plugin is defined');
 		}
 	} else {
 		//self.setConsumeUpdateService(undefined);
@@ -1446,40 +1429,40 @@ CoreStateMachine.prototype.previous = function (promisedResponse) {
 			}
 
 		} else if (this.currentStatus === 'play') {
-			if (this.isConsume && this.consumeState.service != undefined && this.consumeState.service !== 'webradio') { 
-                var thisPlugin = this.commandRouter.getMusicPlugin(this.consumeState.service);
-                if (!this.previousTrackonPrev && typeof thisPlugin.seek === "function") {
-                    thisPlugin.seek(0);
-                    this.startTimerForPreviousTrack();
-                } else {
-                    if (typeof thisPlugin.previous === "function") {
-                        thisPlugin.previous();
-                    } else {
-                        this.commandRouter.pushConsoleMessage('WARNING: No previous method for plugin ' + this.consumeState.service);
-                    }
+			if (this.isConsume && this.consumeState.service != undefined && this.consumeState.service !== 'webradio') {
+				var thisPlugin = this.commandRouter.getMusicPlugin(this.consumeState.service);
+				if (!this.previousTrackonPrev && typeof thisPlugin.seek === "function") {
+					thisPlugin.seek(0);
+					this.startTimerForPreviousTrack();
+				} else {
+					if (typeof thisPlugin.previous === "function") {
+						thisPlugin.previous();
+					} else {
+						this.commandRouter.pushConsoleMessage('WARNING: No previous method for plugin ' + this.consumeState.service);
+					}
 				}
 			} else {
-                var trackBlock = this.getTrack(this.currentPosition);
-                var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
-                if (!this.previousTrackonPrev && typeof thisPlugin.seek === "function") {
-                    thisPlugin.seek(0);
-                    this.startTimerForPreviousTrack();
-                } else {
-                    if (this.currentRandom !== undefined && this.currentRandom === true) {
-                        this.stop();
-                        setTimeout(function () {
-                            self.currentPosition = Math.floor(Math.random() * (self.playQueue.arrayQueue.length));
-                            self.play();
-                        }, 500);
-                    }
-                    else if (this.currentPosition > 0) {
-                        this.stop();
-                        setTimeout(function () {
-                            self.currentPosition--;
-                            self.play();
-                        }, 500);
+				var trackBlock = this.getTrack(this.currentPosition);
+				var thisPlugin = this.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+				if (!this.previousTrackonPrev && typeof thisPlugin.seek === "function") {
+					thisPlugin.seek(0);
+					this.startTimerForPreviousTrack();
+				} else {
+					if (this.currentRandom !== undefined && this.currentRandom === true) {
+						this.stop();
+						setTimeout(function () {
+							self.currentPosition = Math.floor(Math.random() * (self.playQueue.arrayQueue.length));
+							self.play();
+						}, 500);
+					}
+					else if (this.currentPosition > 0) {
+						this.stop();
+						setTimeout(function () {
+							self.currentPosition--;
+							self.play();
+						}, 500);
 
-                    }
+					}
 				}
 			}
 		} else if (this.currentStatus === 'pause') {
@@ -1500,7 +1483,7 @@ CoreStateMachine.prototype.previous = function (promisedResponse) {
 
 CoreStateMachine.prototype.removeQueueItem = function (nIndex) {
 	this.commandRouter.pushConsoleMessage('CoreStateMachine::removeQueueItem');
-    var self=this;
+	var self=this;
 
 	var index = nIndex.value;
 
@@ -1508,26 +1491,26 @@ CoreStateMachine.prototype.removeQueueItem = function (nIndex) {
 	{
 		this.stop()
 			.then(function () {
-		if (this.currentPosition > 0) {
-			this.currentPosition--;
-		} });
+				if (this.currentPosition > 0) {
+					this.currentPosition--;
+				} });
 	}
 	else
-    {
-        if (this.currentPosition > index) {
-            this.currentPosition--;
-        }
-    }
+	{
+		if (this.currentPosition > index) {
+			this.currentPosition--;
+		}
+	}
 
 	var defer=libQ.defer();
-    this.playQueue.removeQueueItem(nIndex)
-        .then(function()
-        {
-            return self.commandRouter.volumioPushState(self.getState());
-        })
-        .then(function(){
-            defer.resolve();
-        });
+	this.playQueue.removeQueueItem(nIndex)
+		.then(function()
+		{
+			return self.commandRouter.volumioPushState(self.getState());
+		})
+		.then(function(){
+			defer.resolve();
+		});
 
 	return defer.promise;
 };
@@ -1535,38 +1518,38 @@ CoreStateMachine.prototype.removeQueueItem = function (nIndex) {
 CoreStateMachine.prototype.setRandom = function (value) {
 	this.commandRouter.pushConsoleMessage('CoreStateMachine::setRandom '+ value);
 
-    if(this.isVolatile){
-        var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-        if (volatilePlugin && typeof volatilePlugin.random === "function") {
-            volatilePlugin.random(value);
-        } else {
-            this.commandRouter.pushConsoleMessage('WARNING: No random method for plugin ' + this.volatileService);
-        }
-    } else {
-        this.currentRandom=value;
+	if(this.isVolatile){
+		var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+		if (volatilePlugin && typeof volatilePlugin.random === "function") {
+			volatilePlugin.random(value);
+		} else {
+			this.commandRouter.pushConsoleMessage('WARNING: No random method for plugin ' + this.volatileService);
+		}
+	} else {
+		this.currentRandom=value;
 
-        this.pushState().fail(this.pushError.bind(this));
+		this.pushState().fail(this.pushError.bind(this));
 	}
 };
 
 CoreStateMachine.prototype.setRepeat = function (value,repeatSingle) {
 	this.commandRouter.pushConsoleMessage('CoreStateMachine::setRepeat '+ value + ' single '+ repeatSingle);
 
-    if(this.isVolatile){
-        var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-        if (volatilePlugin && typeof volatilePlugin.repeat === "function") {
-            volatilePlugin.repeat(value,repeatSingle);
-        } else {
-            this.commandRouter.pushConsoleMessage('WARNING: No repeat method for plugin ' + this.volatileService);
-        }
-    } else {
-        this.currentRepeat=value;
+	if(this.isVolatile){
+		var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+		if (volatilePlugin && typeof volatilePlugin.repeat === "function") {
+			volatilePlugin.repeat(value,repeatSingle);
+		} else {
+			this.commandRouter.pushConsoleMessage('WARNING: No repeat method for plugin ' + this.volatileService);
+		}
+	} else {
+		this.currentRepeat=value;
 
-        if (repeatSingle!=undefined) {
-            this.currentRepeatSingleSong=repeatSingle;
+		if (repeatSingle!=undefined) {
+			this.currentRepeatSingleSong=repeatSingle;
 		}
 
-        this.pushState().fail(this.pushError.bind(this));
+		this.pushState().fail(this.pushError.bind(this));
 	}
 };
 
@@ -1579,60 +1562,60 @@ CoreStateMachine.prototype.setConsume = function (value) {
 };
 
 CoreStateMachine.prototype.skipBackwards = function (data) {
-    this.commandRouter.pushConsoleMessage('CoreStateMachine::skipBackwards '+ data);
+	this.commandRouter.pushConsoleMessage('CoreStateMachine::skipBackwards '+ data);
 
-    if(this.isVolatile){
-        var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-        if (volatilePlugin && typeof volatilePlugin.skipBackwards === "function") {
-            volatilePlugin.skipBackwards(data);
-        } else {
-            this.commandRouter.pushConsoleMessage('WARNING: No skipBackwards method for plugin ' + this.volatileService);
-        }
-    } else {
-        this.commandRouter.pushConsoleMessage('WARNING: skipBackwards method is only available for volatile plugins');
-    }
+	if(this.isVolatile){
+		var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+		if (volatilePlugin && typeof volatilePlugin.skipBackwards === "function") {
+			volatilePlugin.skipBackwards(data);
+		} else {
+			this.commandRouter.pushConsoleMessage('WARNING: No skipBackwards method for plugin ' + this.volatileService);
+		}
+	} else {
+		this.commandRouter.pushConsoleMessage('WARNING: skipBackwards method is only available for volatile plugins');
+	}
 };
 
 CoreStateMachine.prototype.skipForward = function (data) {
-    this.commandRouter.pushConsoleMessage('CoreStateMachine::skipForward '+ data);
+	this.commandRouter.pushConsoleMessage('CoreStateMachine::skipForward '+ data);
 
-    if(this.isVolatile){
-        var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
-        if (volatilePlugin && typeof volatilePlugin.skipForward === "function") {
-            volatilePlugin.skipForward(data);
-        } else {
-            this.commandRouter.pushConsoleMessage('WARNING: No skipForward method for plugin ' + this.volatileService);
-        }
-    } else {
-        this.commandRouter.pushConsoleMessage('WARNING: SkipForward method is only available for volatile plugins');
-    }
+	if(this.isVolatile){
+		var volatilePlugin = this.commandRouter.pluginManager.getPlugin('music_service', this.volatileService);
+		if (volatilePlugin && typeof volatilePlugin.skipForward === "function") {
+			volatilePlugin.skipForward(data);
+		} else {
+			this.commandRouter.pushConsoleMessage('WARNING: No skipForward method for plugin ' + this.volatileService);
+		}
+	} else {
+		this.commandRouter.pushConsoleMessage('WARNING: SkipForward method is only available for volatile plugins');
+	}
 };
 
 CoreStateMachine.prototype.moveQueueItem = function (from,to) {
 	var self=this;
-    this.commandRouter.pushConsoleMessage('CoreStateMachine::moveQueueItem '+from+' '+to);
+	this.commandRouter.pushConsoleMessage('CoreStateMachine::moveQueueItem '+from+' '+to);
 
-    if(from< this.currentPosition && to > this.currentPosition)
-    {
-        this.currentPosition--;
-    }
-    else if(from> this.currentPosition && to <= this.currentPosition)
-    {
-        this.currentPosition++;
-    }
-    else if(from==this.currentPosition)
-        this.currentPosition=to;
+	if(from< this.currentPosition && to > this.currentPosition)
+	{
+		this.currentPosition--;
+	}
+	else if(from> this.currentPosition && to <= this.currentPosition)
+	{
+		this.currentPosition++;
+	}
+	else if(from==this.currentPosition)
+		this.currentPosition=to;
 
-    var defer=libQ.defer();
-    this.playQueue.moveQueueItem(from,to).then(function(){
-        return self.pushState();
-    }).then(function(){
-        defer.resolve({});
-    }).fail(function(err){
-       defer.reject(new Error(err));
-    });
+	var defer=libQ.defer();
+	this.playQueue.moveQueueItem(from,to).then(function(){
+		return self.pushState();
+	}).then(function(){
+		defer.resolve({});
+	}).fail(function(err){
+		defer.reject(new Error(err));
+	});
 
-    return defer.promise;
+	return defer.promise;
 };
 
 CoreStateMachine.prototype.setConsumeUpdateService = function (value, ignoremeta, upnp) {
@@ -1667,11 +1650,11 @@ CoreStateMachine.prototype.setConsumeUpdateService = function (value, ignoremeta
 		this.consumeIgnoreMetadata = false;
 	}
 
-    if (upnp != undefined) {
-        this.isUpnp = upnp;
-    } else {
-        this.isUpnp = false;
-    }
+	if (upnp != undefined) {
+		this.isUpnp = upnp;
+	} else {
+		this.isUpnp = false;
+	}
 
 	return defer.promise;
 
@@ -1686,37 +1669,37 @@ CoreStateMachine.prototype.sanitizeUri = function (uri) {
 CoreStateMachine.prototype.setVolatile = function (data) {
 
 
-    this.volatileService=data.service;
-    this.isVolatile=true;
+	this.volatileService=data.service;
+	this.isVolatile=true;
 
-    /**
-     * This function will be called on volatile stop
-     */
-    this.volatileCallback=data.callback;
+	/**
+	 * This function will be called on volatile stop
+	 */
+	this.volatileCallback=data.callback;
 };
 
 
 CoreStateMachine.prototype.unSetVolatile = function () {
-    console.log("UNSET VOLATILE");
+	console.log("UNSET VOLATILE");
 
-    /**
-     * This function will be called on volatile stop
-     */
-    if(this.volatileCallback!==undefined)
-    {
-        this.volatileCallback.call();
-        this.volatileCallback=undefined;
-    }
+	/**
+	 * This function will be called on volatile stop
+	 */
+	if(this.volatileCallback!==undefined)
+	{
+		this.volatileCallback.call();
+		this.volatileCallback=undefined;
+	}
 
-    this.volatileService=undefined;
-    this.isVolatile=false;
+	this.volatileService=undefined;
+	this.isVolatile=false;
 }
 
 
 CoreStateMachine.prototype.startTimerForPreviousTrack = function () {
-    this.previousTrackonPrev = true;
+	this.previousTrackonPrev = true;
 
-    setTimeout(()=>{
-        this.previousTrackonPrev = false;
+	setTimeout(()=>{
+		this.previousTrackonPrev = false;
 	}, 3000)
 }
