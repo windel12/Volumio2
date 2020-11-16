@@ -84,13 +84,13 @@ CoreCommandRouter.prototype.volumioStop = function () {
 // Volumio Previous
 CoreCommandRouter.prototype.volumioPrevious = function () {
   this.pushConsoleMessage('CoreCommandRouter::volumioPrevious');
-  return this.stateMachine.previous();
+  return this.stateMachine.next();
 };
 
 // Volumio Next
 CoreCommandRouter.prototype.volumioNext = function () {
   this.pushConsoleMessage('CoreCommandRouter::volumioNext');
-  return this.stateMachine.next();
+  return this.stateMachine.next2();
 };
 
 // Volumio Get State

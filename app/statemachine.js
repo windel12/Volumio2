@@ -405,7 +405,7 @@ CoreStateMachine.prototype.increasePlaybackTimer = function () {
     this.playbackStart = Date.now();
 
     var remainingTime = this.currentSongDuration - this.currentSeek;
-    if (remainingTime < 0) {
+    if (remainingTime < 0 && !self.askedForPrefetch) {
       // this.commandRouter.pushConsoleMessage("ERROR increasePlaybackTimer remainingTime:" + remainingTime + " negative - askedForPrefetch:" + this.askedForPrefetch + " - simulateStopStartDone:" + this.simulateStopStartDone);
       remainingTime = 0;
     }
@@ -1103,6 +1103,7 @@ CoreStateMachine.prototype.seek = function (position) {
   }
 };
 
+
 CoreStateMachine.prototype.next = function (promisedResponse) {
   var self = this;
   this.commandRouter.pushConsoleMessage('CoreStateMachine::next');
@@ -1130,30 +1131,52 @@ CoreStateMachine.prototype.next = function (promisedResponse) {
     } else if (this.isUpnp) {
       console.log('UPNP Next');
     } else {
-      // this.stop()
-      //   .then(function () {
-      //     self.currentPosition = self.getNextIndex();
-      //
-      //     return libQ.resolve();
-      //   })
-      //   .then(self.play.bind(self))
-      //   .then(self.updateTrackBlock.bind(self));
+      this.stop()
+        .then(function () {
+          self.currentPosition = self.getNextIndex();
 
-      self.currentPosition = self.getNextIndex();
-      var trackBlock = self.getTrack(self.currentPosition);
-
-      self.currentSeek = 0;
-      self.startPlaybackTimer();
-
-      var thisPlugin = self.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
-      if (typeof thisPlugin.playNextTrack === 'function') {
-        thisPlugin.playNextTrack(trackBlock)
-            .then(self.updateTrackBlock.bind(self));
-      } else {
-        this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.consumeState.service);
-      }
+          return libQ.resolve();
+        })
+        .then(self.play.bind(self))
+        .then(self.updateTrackBlock.bind(self));
     }
   }
+};
+
+CoreStateMachine.prototype.next2 = function (promisedResponse) {
+  var self = this;
+
+  var isWasAskedForPrefetch = self.askedForPrefetch;
+
+  self.currentSeek = 0;
+  self.stopPlaybackTimer();
+
+  var promise = {};
+  if (isWasAskedForPrefetch) {
+    this.currentPosition = this.nextRandomIndex;
+    var trackBlock = self.getTrack(self.currentPosition);
+    var thisPlugin = self.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+
+    if (typeof thisPlugin.next === 'function') {
+      promise = thisPlugin.next();
+    } else {
+      this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.consumeState.service);
+    }
+  } else {
+    self.currentPosition = self.getNextIndex();
+    var trackBlock = self.getTrack(self.currentPosition);
+    var thisPlugin = self.commandRouter.pluginManager.getPlugin('music_service', trackBlock.service);
+
+    if (typeof thisPlugin.playNextTrack === 'function') {
+      promise = thisPlugin.playNextTrack(trackBlock);
+    } else {
+      this.commandRouter.pushConsoleMessage('WARNING: No next method for plugin ' + this.consumeState.service);
+    }
+  }
+  promise.then(function (result) {
+    self.updateTrackBlock.bind(self);
+    self.startPlaybackTimer();
+  });
 };
 
 // Volumio Pause Command
