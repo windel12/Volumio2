@@ -9,6 +9,7 @@ global.exec = require('child_process').exec;
 var execSync = require('child_process').execSync;
 global.fs = require('fs');
 var libQ = require('kew');
+var interferingProcessesKilled = false;
 
 function updater_comm (context) {
   var self = this;
@@ -98,6 +99,9 @@ updater_comm.prototype.translateUpdateString = function (string) {
     } else {
       switch (string) {
         case 'Preparing update':
+          if (!interferingProcessesKilled) {
+              self.killInterferingProcesses();
+          }
           return self.commandRouter.getI18nString('UPDATER.PREPARING_UPDATE');
           break;
         case 'Creating backup':
@@ -173,16 +177,6 @@ updater_comm.prototype.onRestart = function () {
   // Perform startup tasks here
 };
 
-updater_comm.prototype.onInstall = function () {
-  var self = this;
-  // Perform your installation tasks here
-};
-
-updater_comm.prototype.onUninstall = function () {
-  var self = this;
-  // Perform your installation tasks here
-};
-
 updater_comm.prototype.getUIConfig = function () {
   var self = this;
 
@@ -190,32 +184,6 @@ updater_comm.prototype.getUIConfig = function () {
     success: true,
     plugin: 'updater_comm'
   };
-};
-
-updater_comm.prototype.setUIConfig = function (data) {
-  var self = this;
-  // Perform your installation tasks here
-};
-
-updater_comm.prototype.getConf = function (varName) {
-  var self = this;
-  // Perform your installation tasks here
-};
-
-updater_comm.prototype.setConf = function (varName, varValue) {
-  var self = this;
-  // Perform your installation tasks here
-};
-
-// Optional functions exposed for making development easier and more clear
-updater_comm.prototype.getSystemConf = function (pluginName, varName) {
-  var self = this;
-  // Perform your installation tasks here
-};
-
-updater_comm.prototype.setSystemConf = function (pluginName, varName) {
-  var self = this;
-  // Perform your installation tasks here
 };
 
 updater_comm.prototype.getAdditionalConf = function (type, controller, data, def) {
@@ -226,11 +194,6 @@ updater_comm.prototype.getAdditionalConf = function (type, controller, data, def
     setting = def;
   }
   return setting;
-};
-
-updater_comm.prototype.setAdditionalConf = function () {
-  var self = this;
-  // Perform your installation tasks here
 };
 
 updater_comm.prototype.checkSystemIntegrity = function () {
@@ -311,4 +274,21 @@ updater_comm.prototype.pushUpdatesSubscribe = function () {
     .fail((e) => {
       self.logger.error('Could not retrieve system info and connect to Push Updates Facility: ' + e);
     });
+};
+
+updater_comm.prototype.killInterferingProcesses = function () {
+  var self = this;
+
+  interferingProcessesKilled = true;
+  var interferingProcessesArray = ['matchbox-keyboard', 'matchbox-window-manager'];
+  self.logger.info('Killing processes that might interfere with OTA Updates');
+
+  for (var i in interferingProcessesArray) {
+    var processToKill = interferingProcessesArray[i];
+    exec('/usr/bin/sudo /usr/bin/killall ' + processToKill, function (error, stdout, stderr) {
+      if (error) {
+        self.logger.error('Cannot kill process: ' + error);
+      }
+    });
+  }
 };
