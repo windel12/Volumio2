@@ -203,7 +203,8 @@
         "type": "string",
         "value": "STARTED"
       }
-    },"networkfs": {
+    },
+    "networkfs": {
       "enabled": {
         "type": "boolean",
         "value": true
@@ -212,7 +213,8 @@
         "type": "string",
         "value": "STARTED"
       }
-    },"services": {
+    },
+    "services": {
       "enabled": {
         "type": "boolean",
         "value": true
@@ -221,7 +223,8 @@
         "type": "string",
         "value": "STARTED"
       }
-    },"system": {
+    },
+    "system": {
       "enabled": {
         "type": "boolean",
         "value": true
@@ -230,7 +233,8 @@
         "type": "string",
         "value": "STARTED"
       }
-    },"i2s_dacs": {
+    },
+    "i2s_dacs": {
       "enabled": {
         "type": "boolean",
         "value": true
@@ -239,7 +243,8 @@
         "type": "string",
         "value": "STARTED"
       }
-    },"volumiodiscovery": {
+    },
+    "volumiodiscovery": {
       "enabled": {
         "type": "boolean",
         "value": true

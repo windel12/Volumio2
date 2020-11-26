@@ -69,7 +69,7 @@ class RandomQueue {
     if (nextIndex === undefined) {
       this.position = 0;
     }
-    return nextIndex !== undefined ? nextIndex : this.stateMachine.playQueue.arrayQueue.length;
+    return nextIndex !== undefined ? nextIndex : this.stateMachine.playQueue.arrayQueue.length - 1;
   }
 
   prev () {

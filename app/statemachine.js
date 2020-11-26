@@ -381,7 +381,7 @@ CoreStateMachine.prototype.getNextIndex = function () {
     }
   }
 
-  if (isLastTrack && this.currentConsume) {
+  if (isLastTrack) {
     nextIndex = 0;
   }
 
