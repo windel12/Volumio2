@@ -2694,11 +2694,12 @@ ControllerMpd.prototype.seek = function (position) {
   self.logger.info('ControllerMpd::seek');
 
   var defer = libQ.defer();
-  var command = 'seek ';
+  var command = 'seekcur ';
   var cmd = libMpd.cmd;
 
   if (self.clientMpd !== undefined) {
-    self.clientMpd.sendCommand(cmd(command, ['0', position / 1000]), function (err, msg) {
+
+    self.clientMpd.sendCommand(cmd(command, [/*'0', */position / 1000]), function (err, msg) {
       if (msg) {
         self.logger.info(msg);
       } else self.logger.error(err);
